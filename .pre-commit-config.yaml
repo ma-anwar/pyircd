@@ -1,0 +1,21 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.4.0
+    hooks:
+      - id: check-docstring-first
+      - id: check-merge-conflict
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+  - repo: local
+    hooks:
+      - id: formatters
+        name: formatters
+        entry: make format
+        language: python
+        types: [python]
+      - id: linter
+        name: lint
+        entry: make lint
+        language: python
+        types: [python]
