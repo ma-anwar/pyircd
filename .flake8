@@ -1,0 +1,4 @@
+# Make flake8 play nicely with Black
+[flake8]
+max-line-length = 88
+extend-ignore = E203
