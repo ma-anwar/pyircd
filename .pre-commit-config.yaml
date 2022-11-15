@@ -1,21 +1,27 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.4.0
+    rev: v4.3.0
     hooks:
       - id: check-docstring-first
       - id: check-merge-conflict
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: mixed-line-ending
-  - repo: local
+  - repo: https://github.com/asottile/seed-isort-config
+    rev: v2.2.0
     hooks:
-      - id: formatters
-        name: Run Isort and Black
-        entry: make format
-        language: python
-        types: [python]
-      - id: linter
-        name: Run Flake8
-        entry: make lint
-        language: python
-        types: [python]
+    - id: seed-isort-config
+  - repo: https://github.com/pre-commit/mirrors-isort
+    rev: v5.10.1
+    hooks:
+    - id: isort
+  - repo: https://github.com/psf/black
+    rev: 22.10.0
+    hooks:
+    - id: black
+      types_or: [python, pyi]
+      language_version: python3.10
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.3.0
+    hooks:
+    - id: flake8
