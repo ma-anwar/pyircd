@@ -36,7 +36,7 @@ class Server:
 
     def __has_irc_termination_delimiter(self, in_buffer: bytes) -> bool:
         index_of_delimiter = in_buffer.find(constants.IRC_TERMINATION_DELIMITER)
-        return index_of_delimiter != -1
+        return index_of_delimiter != constants.NOT_FOUND
 
     def __get_delimiter_position(self, in_buffer: bytes) -> int:
         index_of_delimiter = in_buffer.find(constants.IRC_TERMINATION_DELIMITER)
@@ -45,7 +45,6 @@ class Server:
     def __receive_and_buffer_data(self, key: SelectorKey):
         socket, address = key.fileobj, key.data.address
 
-        # Small value hardcoded for testing right now
         received_data = socket.recv(constants.RECEIVE_LENGTH)
         self.logger.debug(
             f"Received the following data from {address}: {received_data}"
@@ -69,9 +68,9 @@ class Server:
 
         delimiter_index = self.__get_delimiter_position(key.data.in_buffer)
 
-        # +1 for \n since find gives us index of \r
-        # +1 bc end index is not inclusive
-        irc_message = key.data.in_buffer[: delimiter_index + 2]
+        irc_message = key.data.in_buffer[
+            : delimiter_index + constants.DELIMITER_END_INDEX
+        ]
 
         key.data.in_buffer = key.data.in_buffer[len(irc_message) :]
 
@@ -89,10 +88,12 @@ class Server:
         while delimiter_position := key.data.out_buffer.find(
             constants.IRC_TERMINATION_DELIMITER
         ):
-            if delimiter_position == -1:
+            if delimiter_position == constants.NOT_FOUND:
                 break
 
-            message = key.data.out_buffer[: delimiter_position + 2]
+            message = key.data.out_buffer[
+                : delimiter_position + constants.DELIMITER_END_INDEX
+            ]
             key.data.out_buffer = key.data.out_buffer[len(message) :]
             yield (message)
 
