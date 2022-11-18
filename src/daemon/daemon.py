@@ -2,6 +2,7 @@ import logging
 import sys
 from argparse import ArgumentParser, Namespace
 
+import constants
 import utils
 from event_bus import EventBus
 from parser import Parser
@@ -11,21 +12,19 @@ from server import Server
 def parse_args() -> Namespace:
     parser = ArgumentParser("Python IRC Daemon")
 
-    LOCAL_HOST = "127.0.0.1"
-
     parser.add_argument(
         "--host",
         type=str,
         required=False,
         help="Seed to be used",
-        default=LOCAL_HOST,
+        default=constants.LOCAL_HOST,
     )
     parser.add_argument(
         "--port",
         required=False,
         type=int,
         help="Number of hosts to simulate",
-        default=6667,
+        default=constants.DEFAULT_PORT,
     )
     parser.add_argument(
         "--debug",
