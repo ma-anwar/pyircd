@@ -105,8 +105,8 @@ class Server:
             self.logger.debug(f"Sending message {message}")
             while message != constants.EMPTY_STRING:
                 try:
-                    sent = socket.send(message)
-                    message = message[sent:]
+                    num_bytes_sent = socket.send(message)
+                    message = message[num_bytes_sent:]
                 except ConnectionError as e:
                     self.logger.debug(f"Connection error {e}, deregistering socket")
                     self.selector.unregister(socket)
