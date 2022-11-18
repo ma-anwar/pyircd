@@ -42,7 +42,7 @@ def main() -> None:
 
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
-    utils.print_intro()
+    utils.print_logo()
 
     event_bus = EventBus()
     parser = Parser(event_bus.dispatch)

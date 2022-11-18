@@ -17,10 +17,10 @@ class Server:
         self.dispatch = dispatch
         self.__start_server()
 
-    def __handle_new_client_connection(self, socket):
-        client_connection, client_address = socket.accept()  # Should be ready to read
+    def __handle_new_client_connection(self, socket: socket.socket):
+        client_connection, client_address = socket.accept()
 
-        self.logger.debug(f"Accepted connection from {client_address}")
+        self.logger.info(f"Accepted connection from {client_address}")
         client_connection.setblocking(False)
 
         key = SimpleNamespace(
@@ -46,7 +46,7 @@ class Server:
         socket, address = key.fileobj, key.data.address
 
         # Small value hardcoded for testing right now
-        received_data = socket.recv(20)
+        received_data = socket.recv(constants.RECEIVE_LENGTH)
         self.logger.debug(
             f"Received the following data from {address}: {received_data}"
         )
@@ -59,7 +59,7 @@ class Server:
 
         # Empty receipt means we terminate
         else:
-            self.logger.debug(f"Closing connection to {address}")
+            self.logger.info(f"Closing connection to {address}")
             self.selector.unregister(socket)
             # TODO: Notify downstream
             socket.close()
@@ -68,6 +68,9 @@ class Server:
         address = key.data.address
 
         delimiter_index = self.__get_delimiter_position(key.data.in_buffer)
+
+        # +1 for \n since find gives us index of \r
+        # +1 bc end index is not inclusive
         irc_message = key.data.in_buffer[: delimiter_index + 2]
 
         key.data.in_buffer = key.data.in_buffer[len(irc_message) :]
@@ -83,13 +86,13 @@ class Server:
             self.__send_response(key)
 
     def __get_message(self, key: SelectorKey):
-        while delimter_position := key.data.out_buffer.find(
+        while delimiter_position := key.data.out_buffer.find(
             constants.IRC_TERMINATION_DELIMITER
         ):
-            if delimter_position == -1:
+            if delimiter_position == -1:
                 break
 
-            message = key.data.out_buffer[: delimter_position + 2]
+            message = key.data.out_buffer[: delimiter_position + 2]
             key.data.out_buffer = key.data.out_buffer[len(message) :]
             yield (message)
 
@@ -99,12 +102,12 @@ class Server:
         # Could have multiple messages in output buffer
         for message in self.__get_message(key):
             self.logger.debug(f"Sending message {message}")
-            while message != b"":
+            while message != constants.EMPTY_STRING:
                 try:
                     sent = socket.send(message)
                     message = message[sent:]
                 except ConnectionError as e:
-                    self.logger.debug(f"Connection error {e}, unregistering socket")
+                    self.logger.debug(f"Connection error {e}, deregistering socket")
                     self.selector.unregister(socket)
                     # TODO: Notify downstream
                     return
@@ -148,6 +151,6 @@ class Server:
                         self.__service_existing_connection(socket_data, event_mask)
 
         except Exception as e:
-            print(e)
+            self.logger.debug(f"Exception in event loop: {e}")
         finally:
             self.selector.close()

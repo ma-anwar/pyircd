@@ -6,7 +6,6 @@ from message import Message
 
 class Client:
     def __init__(self):
-        # Add address in logger output?
         self.logger = logging.getLogger("client")
         self.is_registered = False
         self.nick = b""
@@ -19,6 +18,7 @@ class Client:
             self.handle_registration_flow(message)
 
     def handle_registration_flow(self, message: Message):
+        # WIP registration flow
         # Need to handle error cases
         if message.command == constants.NICK_COMMAND and message.parameters[0]:
             self.nick = message.parameters[0]

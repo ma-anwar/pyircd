@@ -15,8 +15,8 @@ class EventBus:
         client = self.__get_client(message)
         client.handle_message(message)
         # Take this out, it's just there to test we can send back to client
-        message.key.data.out_buffer += b"OH YEAH \r\n"
-        message.key.data.out_buffer += b"OH YEAH WOOTWOOT \r\n"
+        message.key.data.out_buffer += b"Here is a response! \r\n"
+        message.key.data.out_buffer += b" Here's another response \r\n"
 
     def dispatch(self, message: Message):
         self.__handle_message(message)

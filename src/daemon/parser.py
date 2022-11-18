@@ -1,5 +1,6 @@
 import logging
 
+import constants
 from message import Message
 
 
@@ -20,7 +21,8 @@ class Parser:
     # Jank temporary parse function, not to spec, just for PoC
     def __parse_message(self, message: Message) -> Message:
         # Remove EOL delimiter
-        stripped_message = message.message[:-2]
+        delimiter_length = len(constants.IRC_TERMINATION_DELIMITER)
+        stripped_message = message.message[:-delimiter_length]
 
         split_message = stripped_message.split()
 
