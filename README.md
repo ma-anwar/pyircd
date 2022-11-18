@@ -12,3 +12,9 @@ Done! Let's run a test to ensure your dev environment is properly setup.
 2. Run `git add test.py && git commit`
 
 You should see output indicating a bunch of checks running such as "Fix End of Files" with a green status bar saying Passed.
+
+## Running the Daemon
+
+To run the daemon, `poetry run python src/daemon/daemon.py`.
+
+To test with the client `poetry run python src/utils/client.py`.
