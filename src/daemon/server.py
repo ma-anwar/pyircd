@@ -1,3 +1,4 @@
+"""Server module is responsible for managing client connections"""
 import logging
 import selectors
 import socket
@@ -9,7 +10,17 @@ from message import Message
 
 
 class Server:
+    """Server class responsible for handling socket connections with client
+
+    Server will buffer receievd data until a full IRC delimited message is received.
+    It will then dispatch the message as a Message to the parser.
+
+    Server also continously checks if in_buffer for any socket has data.
+    If so it will write such data to client.
+    """
+
     def __init__(self, host: str, port: int, dispatch: callable) -> None:
+        """Start the server"""
         self.selector = selectors.DefaultSelector()
         self.host = host
         self.port = port
@@ -18,6 +29,7 @@ class Server:
         self.__start_server()
 
     def __handle_new_client_connection(self, socket: socket.socket):
+        """On client connection, create state and register it with the selector"""
         client_connection, client_address = socket.accept()
 
         self.logger.info(f"Accepted connection from {client_address}")
@@ -35,14 +47,20 @@ class Server:
         self.selector.register(client_connection, events, data=key)
 
     def __has_irc_termination_delimiter(self, in_buffer: bytes) -> bool:
+        """Return true if buffer is delimited by \r\n"""
         index_of_delimiter = in_buffer.find(constants.IRC_TERMINATION_DELIMITER)
         return index_of_delimiter != constants.NOT_FOUND
 
     def __get_delimiter_position(self, in_buffer: bytes) -> int:
+        """Return index of \r\n delimiter"""
         index_of_delimiter = in_buffer.find(constants.IRC_TERMINATION_DELIMITER)
         return index_of_delimiter
 
     def __receive_and_buffer_data(self, key: SelectorKey):
+        """Receive data and call dispatcher if it has IRC delimiter.
+
+        If no data received, close socket
+        """
         socket, address = key.fileobj, key.data.address
 
         received_data = socket.recv(constants.RECEIVE_LENGTH)
@@ -64,6 +82,7 @@ class Server:
             socket.close()
 
     def __dispatch_message_to_parser(self, key: SelectorKey):
+        """Retrieve data from buffer, build Message and dispatch to parser"""
         address = key.data.address
 
         delimiter_index = self.__get_delimiter_position(key.data.in_buffer)
@@ -78,6 +97,7 @@ class Server:
         self.dispatch(message)
 
     def __service_existing_connection(self, key: SelectorKey, event_mask: int):
+        """Handle read or write event on existing connection"""
         if event_mask & selectors.EVENT_READ:
             self.__receive_and_buffer_data(key)
 
@@ -85,6 +105,7 @@ class Server:
             self.__send_response(key)
 
     def __get_message(self, key: SelectorKey):
+        """Generator to retrieve all IRC delimited strings from out_buffer"""
         while delimiter_position := key.data.out_buffer.find(
             constants.IRC_TERMINATION_DELIMITER
         ):
@@ -98,6 +119,7 @@ class Server:
             yield (message)
 
     def __send_response(self, key: SelectorKey):
+        """Send contents of out_buffer to client"""
         socket = key.fileobj
 
         # Could have multiple messages in output buffer
@@ -114,6 +136,7 @@ class Server:
                     return
 
     def __start_server(self):
+        """Initialize server socket and call event_loop initialization"""
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         # Avoid "Address already in use" error
@@ -135,6 +158,7 @@ class Server:
         self.__run_event_loop()
 
     def __run_event_loop(self):
+        """Wait for sockets to register events and handle appropriately"""
         try:
             while True:
                 active_socket = self.selector.select(timeout=None)

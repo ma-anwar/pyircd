@@ -1,3 +1,5 @@
+"""This module holds constants used throughout the daemon"""
+
 NICK_COMMAND = b"NICK"
 USER_COMMAND = b"USER"
 IRC_TERMINATION_DELIMITER = b"\r\n"

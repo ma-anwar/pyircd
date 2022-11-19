@@ -1,3 +1,4 @@
+"""This module sets up the event bus, parser and starts the server"""
 import logging
 import sys
 from argparse import ArgumentParser, Namespace
@@ -10,6 +11,7 @@ from server import Server
 
 
 def parse_args() -> Namespace:
+    """Parse command line arguments"""
     parser = ArgumentParser("Python IRC Daemon")
 
     parser.add_argument(
@@ -36,6 +38,7 @@ def parse_args() -> Namespace:
 
 
 def main() -> None:
+    """Get parsed commandline arguments, setup event_bus, parser and start server"""
     args = parse_args()
     host, port = args.host, args.port
 

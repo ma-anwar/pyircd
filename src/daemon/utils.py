@@ -1,4 +1,5 @@
 def print_logo():
+    """Print out our cool logo"""
     print(
         r"""
 _______________.___.______________________ ________

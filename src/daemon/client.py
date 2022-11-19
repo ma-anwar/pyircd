@@ -1,3 +1,4 @@
+"""This module represents a client and defines client message handlers"""
 import logging
 
 import constants
@@ -5,6 +6,8 @@ from message import Message
 
 
 class Client:
+    """Class responsible for handling messages related to client connections"""
+
     def __init__(self):
         self.logger = logging.getLogger("client")
         self.is_registered = False
@@ -13,11 +16,13 @@ class Client:
         self.user_name = b""
 
     def handle_message(self, message: Message):
+        """Handle message by invoking registration flow"""
         self.logger.debug(message)
         if not self.is_registered:
             self.handle_registration_flow(message)
 
     def handle_registration_flow(self, message: Message):
+        """Handle registration state and ultimately send reply on success WIP"""
         # WIP registration flow
         # Need to handle error cases
         if message.command == constants.NICK_COMMAND and message.parameters[0]:
