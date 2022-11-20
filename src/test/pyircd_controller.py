@@ -27,13 +27,9 @@ class PyIrcdController(BaseServerController):
             )
         return (hostname, int(port))
 
-    def run(self, host: str, port: str) -> None:
+    def run(self, host="127.0.0.1", port="6667") -> None:
         """Run the pyircd server"""
-        assert type(host) in [str, int], "hostname must be either str or int"
-        assert type(port) in [str, int], "port must be either str or int"
-        host, port = int(host), int(port)
-
-        subprocess.run("poetry", "run python ~/pyircd/src/daemon/daemon.py")
+        self.proc = subprocess.run("poetry", f"run python src/daemon/daemon.py --host {host} --port {port}")
 
 
 def get_irctest_controller_class() -> Type[PyIrcdController]:
