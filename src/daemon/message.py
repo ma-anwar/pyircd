@@ -16,8 +16,7 @@ class Message:
     # Action because we may not want a downstream handler to handle message
     # Possible Ex: delete action to delete a client
     action: str
-    # Command and parameters should be parsed from message according to docs
-    message: str
+    message: bytes
     key: SelectorKey = field(repr=False)
     command: str = ""
     parameters: List[str] = field(default_factory=list)
