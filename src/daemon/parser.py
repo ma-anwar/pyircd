@@ -16,25 +16,27 @@ class Parser:
     def __init__(self, dispatch: callable):
         """Save the dispatch function to send messages to event_bus"""
         self.logger = logging.getLogger("Parser")
-        self.__dispatch = dispatch
+        self._dispatch = dispatch
 
-    def __handle_message(self, message: Message):
+    def _handle_message(self, message: Message):
         """Handle Message and dispatch it to EventBus"""
         self.logger.debug(message)
-        parsed_message = self.__parse_message(message)
+        parsed_message = self._parse_message(message)
         self.logger.debug(parsed_message)
-        self.__dispatch(parsed_message)
+        self._dispatch(parsed_message)
 
     def dispatch(self, message: Message):
         """Call handler on message, used by Server"""
-        self.__handle_message(message)
+        self._handle_message(message)
 
     # Jank temporary parse function, not to spec, just for PoC
-    def __parse_message(self, message: Message) -> Message:
+    def _parse_message(self, message: Message) -> Message:
         """Parse message according to IRC spec"""
+        decoded_message = message.message.decode("utf-8")
+
         # Remove EOL delimiter
         delimiter_length = len(constants.IRC_TERMINATION_DELIMITER)
-        stripped_message = message.message[:-delimiter_length]
+        stripped_message = decoded_message[:-delimiter_length]
 
         split_message = stripped_message.split()
 
