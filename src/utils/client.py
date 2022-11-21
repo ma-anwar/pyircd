@@ -2,7 +2,7 @@
 """Tiny client implementation for quick testing; can be more robust"""
 import socket
 
-SERVER = 'localhost'
+SERVER = '127.0.0.1'
 PORT = 14121
 NICKNAME = 'test_nickname'
 CHANNEL = '#random'
