@@ -14,10 +14,10 @@ class EventBus:
         self.logger = logging.getLogger("Event Bus")
         self.clients = defaultdict(Client)
 
-    def __handle_message(self, message: Message):
+    def _handle_message(self, message: Message):
         """Handle received message by forwarding it to client, WIP"""
         self.logger.debug(message)
-        client = self.__get_client(message)
+        client = self._get_client(message)
         client.handle_message(message)
         # Take this out, it's just there to test we can send back to client
         message.key.data.out_buffer += b"Here is a response! \r\n"
@@ -25,9 +25,9 @@ class EventBus:
 
     def dispatch(self, message: Message):
         """Call handler on message, used by Parser"""
-        self.__handle_message(message)
+        self._handle_message(message)
 
-    def __get_client(self, message: Message):
+    def _get_client(self, message: Message):
         """Return Client based on address
         If Client does not exist, generates a new Client instance
         """
