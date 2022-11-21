@@ -85,16 +85,17 @@ class Server:
         """Retrieve data from buffer, build Message and dispatch to parser"""
         address = key.data.address
 
-        delimiter_index = self._get_delimiter_position(key.data.in_buffer)
+        for message in self._get_message_from_in_buffer(key):
+            delimiter_index = self._get_delimiter_position(key.data.in_buffer)
 
-        irc_message = key.data.in_buffer[
-            : delimiter_index + constants.DELIMITER_END_INDEX
-        ]
+            irc_message = key.data.in_buffer[
+                : delimiter_index + constants.DELIMITER_END_INDEX
+            ]
 
-        key.data.in_buffer = key.data.in_buffer[len(irc_message) :]
+            key.data.in_buffer = key.data.in_buffer[len(irc_message) :]
 
-        message = Message(address, "PARSE", irc_message, key)
-        self.dispatch(message)
+            message = Message(address, "PARSE", irc_message, key)
+            self.dispatch(message)
 
     def _service_existing_connection(self, key: SelectorKey, event_mask: int):
         """Handle read or write event on existing connection"""
@@ -103,6 +104,20 @@ class Server:
 
         if event_mask & selectors.EVENT_WRITE and key.data.out_buffer:
             self._send_response(key)
+
+    def _get_message_from_in_buffer(self, key: SelectorKey):
+        """Generator to retrieve all IRC delimited strings from in_buffer"""
+        while delimiter_position := key.data.in_buffer.find(
+            constants.IRC_TERMINATION_DELIMITER
+        ):
+            if delimiter_position == constants.NOT_FOUND:
+                break
+
+            message = key.data.in_buffer[
+                : delimiter_position + constants.DELIMITER_END_INDEX
+            ]
+            key.data.out_buffer = key.data.in_buffer[len(message) :]
+            yield (message)
 
     def _get_message(self, key: SelectorKey):
         """Generator to retrieve all IRC delimited strings from out_buffer"""
