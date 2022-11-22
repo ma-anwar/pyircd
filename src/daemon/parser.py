@@ -31,7 +31,7 @@ class Parser:
         # If the delimiter is not found, the message never reaches the parser
         self._handle_message(message)
 
-    def parse_parameters(parameters: list):
+    def _parse_parameters(self, parameters: list):
         """Return a list of parsed parameters.
         If there are any bad parameters, return None"""
         valid_parameters = []
@@ -44,16 +44,16 @@ class Parser:
             valid_parameters.append(parameter)
         return valid_parameters
 
-    def refuse():
-        """Refuse to parse the message any further - return None"""
+    def _refuse(self):
+        """_refuse to parse the message any further - return None"""
         empty_message = None
         return empty_message
 
     def _parse_message(self, message: Message) -> Message:
         """Parse message according to IRC spec"""
 
-        if message.action not in [constants.ACCEPTED_ACTIONS]:
-            return self.refuse()
+        if message.action not in constants.ACCEPTED_ACTIONS:
+            return self._refuse()
 
         # Decode message
         message_str = message.message.decode("utf-8")
@@ -73,16 +73,16 @@ class Parser:
 
         # Inspect contents (assume no tags and source for now)
         if len(split_message) < 2:
-            return self.refuse()
+            return self._refuse()
 
         command = split_message[0]
-        parameters = self.parse_parameters(split_message[1:])
+        parameters = self._parse_parameters(split_message[1:])
 
         if (
             command not in constants.VALID_ALPHA_COMMANDS
             and command not in constants.VALID_NUMERIC_COMMANDS
         ) or parameters is None:
-            return self.refuse()
+            return self._refuse()
 
         # Add delimiter to message before returning
         return_msg = stripped_message + "\r\n"
