@@ -329,7 +329,7 @@ testing = ["coverage (>=6.2)", "coverage-enable-subprocess (>=1)", "flaky (>=3.7
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "48f2610d780889035c7d92f4f68dbe9c0adfbee0d83e224a93692fa5b22ff588"
+content-hash = "23e8770e135add033bee2e42d195533b1fff3924a4825f7f831396bafca50577"
 
 [metadata.files]
 autocommand = [
