@@ -75,10 +75,7 @@ class Parser:
         command = split_message[0]
         parameters = self._parse_parameters(split_message[1:])
 
-        if (
-            command not in constants.VALID_ALPHA_COMMANDS
-            and command not in constants.VALID_NUMERIC_COMMANDS
-        ) or parameters is None:
+        if (command not in constants.VALID_ALPHA_COMMANDS) or parameters is None:
             return
 
         # Add delimiter to message before returning
