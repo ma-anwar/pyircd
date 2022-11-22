@@ -33,7 +33,7 @@ class PyIrcdController(BaseServerController):
         assert type(port) in [str, int], "port must be either str or int"
         host, port = int(host), int(port)
 
-        subprocess.run("poetry", "run python src/daemon/daemon.py")
+        subprocess.run("poetry", "run python ~/pyircd/src/daemon/daemon.py")
 
 
 def get_irctest_controller_class() -> Type[PyIrcdController]:
