@@ -15,7 +15,7 @@ class Parser:
 
     def __init__(self, dispatch: callable):
         """Save the dispatch function to send messages to event_bus"""
-        self.logger = logging.getLogger("Parser")
+        self.logger = logging.getLogger(__name__)
         self._dispatch = dispatch
 
     def _handle_message(self, message: Message):

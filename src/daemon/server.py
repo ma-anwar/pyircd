@@ -25,7 +25,7 @@ class Server:
         self._selector = selectors.DefaultSelector()
         self._host = host
         self._port = port
-        self._logger = logging.getLogger("Server")
+        self._logger = logging.getLogger(__name__)
         self._dispatch = dispatch
         self._start_server()
 
@@ -94,7 +94,7 @@ class Server:
             delimiter_index = self._get_delimiter_position(key.data.in_buffer)
 
             irc_message = key.data.in_buffer[
-                : delimiter_index + constants.DELIMITER_END_INDEX
+                : delimiter_index + constants.DELIMITER_END_OFFSET
             ]
 
             key.data.in_buffer = key.data.in_buffer[len(irc_message) :]
@@ -119,7 +119,7 @@ class Server:
                 break
 
             message = key.data.in_buffer[
-                : delimiter_position + constants.DELIMITER_END_INDEX
+                : delimiter_position + constants.DELIMITER_END_OFFSET
             ]
             key.data.out_buffer = key.data.in_buffer[len(message) :]
             yield (message)
@@ -133,7 +133,7 @@ class Server:
                 break
 
             message = key.data.out_buffer[
-                : delimiter_position + constants.DELIMITER_END_INDEX
+                : delimiter_position + constants.DELIMITER_END_OFFSET
             ]
             key.data.out_buffer = key.data.out_buffer[len(message) :]
             yield (message)
