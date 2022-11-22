@@ -31,6 +31,19 @@ class Parser:
         # If the delimiter is not found, the message never reaches the parser
         self._handle_message(message)
 
+    def parse_parameters(parameters: list):
+        """Return a list of parsed parameters.
+        If there are any bad parameters, return None"""
+        valid_parameters = []
+        for parameter in parameters:
+            if parameter[0] == ":":
+                parameter = parameter[1:]
+            for x in ["NUL", "CR", "LF", "::"]:  # Forbidden sequences
+                if x in parameter:
+                    return None  # If even a single parameter is bad, abort
+            valid_parameters.append(parameter)
+        return valid_parameters
+
     def refuse():
         """Refuse to parse the message any further - return None"""
         empty_message = None
@@ -63,11 +76,12 @@ class Parser:
             return self.refuse()
 
         command = split_message[0]
-        parameters = split_message[1:]
+        parameters = self.parse_parameters(split_message[1:])
 
         if (
             command not in constants.VALID_ALPHA_COMMANDS
             or command not in constants.VALID_NUMERIC_COMMANDS
+            or parameters is None
         ):
             return self.refuse()
 
