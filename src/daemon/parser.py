@@ -60,7 +60,7 @@ class Parser:
         split_message = stripped_message.split()
 
         # Inspect contents (assume no tags and source for now)
-        if len(split_message) != 2:
+        if len(split_message) < 2:
             return self.refuse()
 
         command = split_message[0]
