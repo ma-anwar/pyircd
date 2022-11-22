@@ -16,20 +16,20 @@ class Parser:
     def __init__(self, dispatch: callable):
         """Save the dispatch function to send messages to event_bus"""
         self.logger = logging.getLogger("Parser")
-        self.__dispatch = dispatch
+        self._dispatch = dispatch
 
     def _handle_message(self, message: Message):
         """Handle Message and dispatch it to EventBus"""
         self.logger.debug(message)
-        parsed_message = self.__parse_message(message)
+        parsed_message = self._parse_message(message)
         self.logger.debug(parsed_message)
-        self.__dispatch(parsed_message)
+        self._dispatch(parsed_message)
 
     def dispatch(self, message: Message):
-        """Pass message to handler"""
+        """Receive incoming message at parser"""
         # Currently, the delimiter check is being done inside server.py
         # If the delimiter is not found, the message never reaches the parser
-        self.__handle_message(message)
+        self._handle_message(message)
 
     def refuse():
         """Refuse to parse the message any further"""
@@ -75,7 +75,7 @@ class Parser:
         # Add delimiter to message before returning
         return_msg = stripped_message + "\r\n"
 
-        # Encode message
+        # Encode message before sending back
         return_msg = return_msg.encode("utf-8")
 
         # Return parsed message
