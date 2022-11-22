@@ -18,7 +18,7 @@ class Parser:
         self.logger = logging.getLogger("Parser")
         self.__dispatch = dispatch
 
-    def __handle_message(self, message: Message):
+    def _handle_message(self, message: Message):
         """Handle Message and dispatch it to EventBus"""
         self.logger.debug(message)
         parsed_message = self.__parse_message(message)
@@ -26,13 +26,23 @@ class Parser:
         self.__dispatch(parsed_message)
 
     def dispatch(self, message: Message):
+        """Pass message to handler"""
         # Currently, the delimiter check is being done inside server.py
         # If the delimiter is not found, the message never reaches the parser
         self.__handle_message(message)
 
+    def refuse():
+        """Refuse to parse the message any further"""
+        empty_message = None
+        return empty_message
+
     # Work-in-progress, INCOMPLETE
-    def __parse_message(self, message: Message) -> Message:
+    def _parse_message(self, message: Message) -> Message:
         """Parse message according to IRC spec"""
+
+        if message.action not in [constants.ACCEPTED_ACTIONS]:
+            return self.refuse()
+
         # Decode message
         message_str = message.message.decode("utf-8")
 
@@ -40,30 +50,39 @@ class Parser:
         delimiter_length = len(constants.IRC_TERMINATION_DELIMITER)
         stripped_message = message_str[:-delimiter_length]
 
-        # Check whether the message length exceeds the max length
+        # Accept messages that exceed MAX_LINE_LENGTH, but slice them
         if len(stripped_message) > constants.MAX_LINE_LENGTH - 2:
-            ret_msg = stripped_message[: constants.MAX_LINE_LENGTH - 2] + "\r\n"
+            stripped_message = stripped_message[: constants.MAX_LINE_LENGTH - 2]
         else:
-            ret_msg = stripped_message + "\r\n"
+            stripped_message = stripped_message
 
-        # Check for prefix?
-        # A prefix could be used to invoke a command instead of sending a message
-
-        # Check command
+        # Split message by space
         split_message = stripped_message.split()
 
-        # Check params
-        command = split_message.pop(0)
-        parameters = split_message
+        # Inspect contents (assume no tags and source for now)
+        if len(split_message) != 2:
+            return self.refuse()
+
+        command = split_message[0]
+        parameters = split_message[1:]
+
+        if (
+            command not in constants.VALID_ALPHA_COMMANDS
+            or command not in constants.VALID_NUMERIC_COMMANDS
+        ):
+            return self.refuse()
+
+        # Add delimiter to message before returning
+        return_msg = stripped_message + "\r\n"
 
         # Encode message
-        ret_msg = ret_msg.encode("utf-8")
+        return_msg = return_msg.encode("utf-8")
 
         # Return parsed message
         parsed_message = Message(
             message.client_address,
             "HANDLE",
-            ret_msg,
+            return_msg,
             message.key,
             command,
             parameters,
