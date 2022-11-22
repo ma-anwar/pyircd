@@ -260,7 +260,7 @@ python-versions = "*"
 name = "pyyaml"
 version = "6.0"
 description = "YAML parser and emitter for Python"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -329,7 +329,7 @@ testing = ["coverage (>=6.2)", "coverage-enable-subprocess (>=1)", "flaky (>=3.7
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "71bd898cd42e49b377a67fb40ca494abd905b88d7bec76ac6832013e25b1b112"
+content-hash = "48f2610d780889035c7d92f4f68dbe9c0adfbee0d83e224a93692fa5b22ff588"
 
 [metadata.files]
 autocommand = [
