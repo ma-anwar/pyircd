@@ -2,6 +2,7 @@
 import logging
 import selectors
 import socket
+import traceback
 from selectors import SelectorKey
 from types import SimpleNamespace
 
@@ -21,18 +22,18 @@ class Server:
 
     def __init__(self, host: str, port: int, dispatch: callable) -> None:
         """Start the server"""
-        self.selector = selectors.DefaultSelector()
-        self.host = host
-        self.port = port
-        self.logger = logging.getLogger("Server")
-        self.dispatch = dispatch
+        self._selector = selectors.DefaultSelector()
+        self._host = host
+        self._port = port
+        self._logger = logging.getLogger("Server")
+        self._dispatch = dispatch
         self._start_server()
 
     def _handle_new_client_connection(self, socket: socket.socket):
         """On client connection, create state and register it with the selector"""
         client_connection, client_address = socket.accept()
 
-        self.logger.info(f"Accepted connection from {client_address}")
+        self._logger.info(f"Accepted connection from {client_address}")
         client_connection.setblocking(False)
 
         key = SimpleNamespace(
@@ -44,7 +45,7 @@ class Server:
 
         events = selectors.EVENT_READ | selectors.EVENT_WRITE
 
-        self.selector.register(client_connection, events, data=key)
+        self._selector.register(client_connection, events, data=key)
 
     def _has_irc_termination_delimiter(self, in_buffer: bytes) -> bool:
         """Return true if buffer is delimited by \r\n"""
@@ -63,8 +64,12 @@ class Server:
         """
         socket, address = key.fileobj, key.data.address
 
-        received_data = socket.recv(constants.RECEIVE_LENGTH)
-        self.logger.debug(
+        try:
+            received_data = socket.recv(constants.RECEIVE_LENGTH)
+        except ConnectionResetError:
+            return
+
+        self._logger.debug(
             f"Received the following data from {address}: {received_data}"
         )
 
@@ -76,8 +81,8 @@ class Server:
 
         # Empty receipt means we terminate
         else:
-            self.logger.info(f"Closing connection to {address}")
-            self.selector.unregister(socket)
+            self._logger.info(f"Closing connection to {address}")
+            self._selector.unregister(socket)
             # TODO: Notify downstream
             socket.close()
 
@@ -95,7 +100,7 @@ class Server:
             key.data.in_buffer = key.data.in_buffer[len(irc_message) :]
 
             message = Message(address, "PARSE", irc_message, key)
-            self.dispatch(message)
+            self._dispatch(message)
 
     def _service_existing_connection(self, key: SelectorKey, event_mask: int):
         """Handle read or write event on existing connection"""
@@ -139,14 +144,14 @@ class Server:
 
         # Could have multiple messages in output buffer
         for message in self._get_message(key):
-            self.logger.debug(f"Sending message {message}")
+            self._logger.debug(f"Sending message {message}")
             while message != constants.EMPTY_STRING:
                 try:
                     num_bytes_sent = socket.send(message)
                     message = message[num_bytes_sent:]
                 except ConnectionError as e:
-                    self.logger.debug(f"Connection error {e}, deregistering socket")
-                    self.selector.unregister(socket)
+                    self._logger.debug(f"Connection error {e}, deregistering socket")
+                    self._selector.unregister(socket)
                     # TODO: Notify downstream
                     return
 
@@ -157,10 +162,10 @@ class Server:
         # Avoid "Address already in use" error
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        server_socket.bind((self.host, self.port))
+        server_socket.bind((self._host, self._port))
         server_socket.listen()
 
-        self.logger.info(f"Listening on {(self.host, self.port)}")
+        self._logger.info(f"Listening on {(self._host, self._port)}")
 
         server_socket.setblocking(False)
 
@@ -169,14 +174,14 @@ class Server:
         key = SimpleNamespace(is_server_socket=True)
 
         # We are only interested in reading new cxn information fron server_socket
-        self.selector.register(server_socket, selectors.EVENT_READ, data=key)
+        self._selector.register(server_socket, selectors.EVENT_READ, data=key)
         self._run_event_loop()
 
     def _run_event_loop(self):
         """Wait for sockets to register events and handle appropriately"""
         try:
             while True:
-                active_socket = self.selector.select(timeout=None)
+                active_socket = self._selector.select(timeout=None)
 
                 for socket_data, event_mask in active_socket:
 
@@ -191,6 +196,7 @@ class Server:
                         self._service_existing_connection(socket_data, event_mask)
 
         except Exception as e:
-            self.logger.debug(f"Exception in event loop: {e}")
+            self._logger.debug(f"Exception in event loop: {e}")
+            traceback.print_exc()
         finally:
-            self.selector.close()
+            self._selector.close()
