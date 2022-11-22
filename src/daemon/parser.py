@@ -44,16 +44,13 @@ class Parser:
             valid_parameters.append(parameter)
         return valid_parameters
 
-    def _refuse(self):
-        """_refuse to parse the message any further - return None"""
-        empty_message = None
-        return empty_message
-
     def _parse_message(self, message: Message) -> Message:
-        """Parse message according to IRC spec"""
+        """Parse message according to IRC spec
+        If parse is successful, forward message to EventBus
+        Otherwise, drop message"""
 
         if message.action not in constants.ACCEPTED_ACTIONS:
-            return self._refuse()
+            return
 
         # Decode message
         message_str = message.message.decode("utf-8")
@@ -73,7 +70,7 @@ class Parser:
 
         # Inspect contents (assume no tags and source for now)
         if len(split_message) < 2:
-            return self._refuse()
+            return
 
         command = split_message[0]
         parameters = self._parse_parameters(split_message[1:])
@@ -82,7 +79,7 @@ class Parser:
             command not in constants.VALID_ALPHA_COMMANDS
             and command not in constants.VALID_NUMERIC_COMMANDS
         ) or parameters is None:
-            return self._refuse()
+            return
 
         # Add delimiter to message before returning
         return_msg = stripped_message + "\r\n"
