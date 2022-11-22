@@ -80,9 +80,8 @@ class Parser:
 
         if (
             command not in constants.VALID_ALPHA_COMMANDS
-            or command not in constants.VALID_NUMERIC_COMMANDS
-            or parameters is None
-        ):
+            and command not in constants.VALID_NUMERIC_COMMANDS
+        ) or parameters is None:
             return self.refuse()
 
         # Add delimiter to message before returning
