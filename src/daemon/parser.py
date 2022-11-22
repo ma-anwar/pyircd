@@ -32,7 +32,7 @@ class Parser:
         self._handle_message(message)
 
     def refuse():
-        """Refuse to parse the message any further"""
+        """Refuse to parse the message any further - return None"""
         empty_message = None
         return empty_message
 
