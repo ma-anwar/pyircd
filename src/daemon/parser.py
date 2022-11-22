@@ -36,7 +36,6 @@ class Parser:
         empty_message = None
         return empty_message
 
-    # Work-in-progress, INCOMPLETE
     def _parse_message(self, message: Message) -> Message:
         """Parse message according to IRC spec"""
 
