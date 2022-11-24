@@ -21,9 +21,12 @@ class Parser:
     def _handle_message(self, message: Message):
         """Handle Message and dispatch it to EventBus"""
         self.logger.debug(message)
+        if message.action not in constants.ACCEPTED_ACTIONS:
+            return
         parsed_message = self._parse_message(message)
         self.logger.debug(parsed_message)
-        self._dispatch(parsed_message)
+        if parsed_message is not None:
+            self._dispatch(parsed_message)
 
     def dispatch(self, message: Message):
         """Receive incoming message at parser"""
@@ -35,22 +38,24 @@ class Parser:
         """Return a list of parsed parameters.
         If there are any bad parameters, return None"""
         valid_parameters = []
-        for parameter in parameters:
-            if parameter[0] == ":":
-                parameter = parameter[1:]
-            for x in ["NUL", "CR", "LF", "::"]:  # Forbidden sequences
-                if x in parameter:
-                    return None  # If even a single parameter is bad, abort
-            valid_parameters.append(parameter)
+        join_params = False
+        for i in range(len(parameters)):
+            if parameters[i][0] == ":":
+                join_params = True
+                parameters[i] = parameters[i][1:]
+                parameters[i] = " ".join(parameters[i:])
+            for forbidden_sequence in ["\0", "\r", "\n", "::"]:
+                if forbidden_sequence in parameters[i]:
+                    return None
+            valid_parameters.append(parameters[i])
+            if join_params:
+                break
         return valid_parameters
 
     def _parse_message(self, message: Message) -> Message:
         """Parse message according to IRC spec
         If parse is successful, forward message to EventBus
         Otherwise, drop message"""
-
-        if message.action not in constants.ACCEPTED_ACTIONS:
-            return
 
         # Decode message
         message_str = message.message.decode("utf-8")
@@ -69,7 +74,7 @@ class Parser:
         split_message = stripped_message.split()
 
         # Inspect contents (assume no tags and source for now)
-        if len(split_message) < 2:
+        if len(split_message) < 1:
             return
 
         command = split_message[0].upper()
@@ -78,17 +83,11 @@ class Parser:
         if (command not in constants.VALID_ALPHA_COMMANDS) or parameters is None:
             return
 
-        # Add delimiter to message before returning
-        return_msg = stripped_message + "\r\n"
-
-        # Encode message before sending back
-        return_msg = return_msg.encode("utf-8")
-
         # Return parsed message
         parsed_message = Message(
             message.client_address,
             "HANDLE",
-            return_msg,
+            stripped_message,
             message.key,
             command,
             parameters,
