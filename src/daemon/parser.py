@@ -72,7 +72,7 @@ class Parser:
         if len(split_message) < 2:
             return
 
-        command = split_message[0]
+        command = split_message[0].upper()
         parameters = self._parse_parameters(split_message[1:])
 
         if (command not in constants.VALID_ALPHA_COMMANDS) or parameters is None:
