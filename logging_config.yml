@@ -32,6 +32,12 @@ loggers:
         handlers: [terminal]
         propagate: yes
 
+    message_bus:
+        level: Info
+        handlers: [terminal]
+        propagate: yes
+
+
     __main__:
         level: INFO
         handlers: [terminal]

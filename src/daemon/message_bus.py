@@ -5,12 +5,12 @@ from client import Client
 from message import Message
 
 
-class EventBus:
+class MessageBus:
     """Class responsible for handling parsed messages."""
 
     def __init__(self):
         """Initialize map of address to client objects"""
-        self._logger = logging.getLogger("Event Bus")
+        self._logger = logging.getLogger(__name__)
         self._clients = {}
 
     def _handle_message(self, message: Message):

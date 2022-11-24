@@ -6,7 +6,7 @@ from argparse import ArgumentParser, Namespace
 import constants
 import utils
 import yaml
-from event_bus import EventBus
+from message_bus import MessageBus
 from parser import Parser
 from server import Server
 
@@ -54,8 +54,8 @@ def main() -> None:
 
     utils.print_logo()
 
-    event_bus = EventBus()
-    parser = Parser(event_bus.dispatch)
+    message_bus = MessageBus()
+    parser = Parser(message_bus.dispatch)
     Server(host, port, parser.dispatch)
 
 
