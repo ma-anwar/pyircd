@@ -1,0 +1,44 @@
+# Adapted from https://stackoverflow.com/questions/38537905/set-logging-levels
+version: 1
+
+formatters:
+    simple:
+        format: "%(name)s -  %(message)s"
+
+    complex:
+        format: "%(asctime)s - %(name)s - %(lineno)d -  %(message)s"
+
+
+handlers:
+    terminal:
+        class: logging.StreamHandler
+        level: DEBUG
+        formatter: simple
+
+loggers:
+
+    client:
+        level: INFO
+        handlers: [terminal]
+        propagate: yes
+
+    parser:
+        level: INFO
+        handlers: [terminal]
+        propagate: yes
+
+    server:
+        level: INFO
+        handlers: [terminal]
+        propagate: yes
+
+    message_bus:
+        level: INFO
+        handlers: [terminal]
+        propagate: yes
+
+
+    __main__:
+        level: INFO
+        handlers: [terminal]
+        propagate: yes
