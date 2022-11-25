@@ -21,18 +21,12 @@ class PyIrcdController(BaseServerController):
 
     def get_hostname_and_port(self) -> Tuple[str, int]:
         """Returns hostname and port"""
-        hostname = os.environ.get("IRCTEST_SERVER_HOSTNAME")
-        port = os.environ.get("IRCTEST_SERVER_PORT")
-        if not hostname or not port:
-            raise RuntimeError(
-                "Please set IRCTEST_SERVER_HOSTNAME and IRCTEST_SERVER_PORT."
-            )
-        return (hostname, int(port))
+        return (self.hostname, int(self.port))
 
     def run(
         self,
-        host="127.0.0.1",
-        port="6667",
+        host,
+        port,
         password=None,
         valid_metadata_keys=None,
         invalid_metadata_keys=None,
@@ -41,11 +35,17 @@ class PyIrcdController(BaseServerController):
         faketime=None,
     ) -> None:
         """Run the pyircd server"""
-        run_daemon_command = (
-            "poetry run python "
-            + "/home/efkan/Documents/D58/final-project/pyircd/src/daemon/daemon.py "
-            + f"--host {host} --port {port}"
-        )
+        pyircd_dir = os.environ.get("PYIRCD_DIR")
+
+        if not pyircd_dir:
+            raise RuntimeError("Please set PYIRCD_DIR to the root of the pyircd repo")
+
+        daemon = pyircd_dir + "src/daemon/daemon.py"
+
+        os.chdir(pyircd_dir)
+
+        run_daemon_command = f"poetry run python {daemon}"
+
         self.proc = subprocess.Popen(run_daemon_command.split())
 
 
