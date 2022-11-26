@@ -125,8 +125,8 @@ class Client:
         """Handle PING command"""
         if not len(message.parameters) or not len(message.parameters[0]):
             self.send_message(IRC_ERRORS.NEED_MORE_PARAMS, "PING :a token must be sent")
-        token = message.parameters[0]
 
+        token = message.parameters[0]
         self.send_message(IRC_COMMANDS.PONG, f"{constants.SERVER_NAME} {token}")
 
     def send_message(self, numeric: str, message: str):
