@@ -2,6 +2,7 @@
 import logging
 from selectors import SelectorKey
 
+import config
 import constants
 from constants import IRC_COMMANDS, IRC_ERRORS, IRC_REPLIES
 from message import Message
@@ -44,10 +45,10 @@ class Client:
 
         https://modern.ircdocs.horse/#connection-registration
         """
-        self.send_message(IRC_REPLIES.WELCOME, ":Welcome to Pyircd")
+        self.send_message(IRC_REPLIES.WELCOME, f":Welcome to {config.SERVER_NAME}")
         self.send_message(IRC_REPLIES.YOURHOST, ":This daemon is being developed.")
         self.send_message(IRC_REPLIES.CREATED, ":This server was started recently")
-        self.send_message(IRC_REPLIES.MYINFO, ":Pyircd More info sooon!")
+        self.send_message(IRC_REPLIES.MYINFO, f":{config.SERVER_NAME} More info sooon!")
 
     def handle_message(self, message: Message):
         """Handle message by invoking registration flow"""
@@ -125,11 +126,14 @@ class Client:
         """Handle PING command"""
         if not len(message.parameters) or not len(message.parameters[0]):
             self.send_message(IRC_ERRORS.NEED_MORE_PARAMS, "PING :a token must be sent")
+            return
 
         token = message.parameters[0]
-        self.send_message(IRC_COMMANDS.PONG, f"{constants.SERVER_NAME} {token}")
+        self.send_message(
+            IRC_COMMANDS.PONG, f"{config.SERVER_NAME} {token}", include_nick=False
+        )
 
-    def send_message(self, numeric: str, message: str):
+    def send_message(self, numeric: str, message: str, include_nick: bool = True):
         """Write message to the out buffer of this client instance
 
         Constructs message according to spec below
@@ -137,9 +141,13 @@ class Client:
         numeric: 3 digit code per docs
         message: utf-8 string, optionally terminated with \r\n
         """
-        constructed_messsage = (
-            f"{constants.MESSAGE_PREFIX} {numeric} {self._nick} {message}"
-        )
+        if include_nick:
+            constructed_messsage = (
+                f"{constants.MESSAGE_PREFIX} {numeric} {self._nick} {message}"
+            )
+        else:
+            constructed_messsage = f"{constants.MESSAGE_PREFIX} {numeric} {message}"
+
         message_as_bytes = constructed_messsage.encode()
 
         if not message_as_bytes.endswith(constants.IRC_TERMINATION_DELIMITER):

@@ -1,6 +1,8 @@
 """This module holds constants used throughout the daemon"""
 from enum import Enum, unique
 
+import config
+
 
 # Use str as value in enums: https://docs.python.org/3/library/enum.html#notes
 @unique
@@ -93,5 +95,4 @@ VALID_ALPHA_COMMANDS = [
     "USERHOST",
     "WALLOPS",
 ]
-SERVER_NAME = "pyircd"
-MESSAGE_PREFIX = f":{SERVER_NAME} "
+MESSAGE_PREFIX = f":{config.SERVER_NAME} "
