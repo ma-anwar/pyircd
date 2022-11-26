@@ -16,10 +16,15 @@ class Client:
         self._logger = logging.getLogger(__name__)
         self._is_registered = False
         self._nick = ""
-        self._real_name = ""
+        self._realname = ""
         self._username = ""
         self._key = key
         self.address = address
+        self._handlers = {
+            IRC_COMMANDS.PING: self._handle_ping,
+            IRC_COMMANDS.USER: self._handle_user,
+            IRC_COMMANDS.NICK: self._handle_nick,
+        }
 
     @property
     def is_registered(self):
@@ -46,9 +51,15 @@ class Client:
 
     def handle_message(self, message: Message):
         """Handle message by invoking registration flow"""
-        self._logger.debug(message)
+        self._logger.debug(f"{self.address} - {message}")
+
         if not self.is_registered:
             self._handle_registration_flow(message)
+            return
+
+        if message.command in self._handlers.keys():
+            handler = self._handlers[message.command]
+            handler(message)
 
     def _handle_registration_flow(self, message: Message):
         """Handle registration state and ultimately send reply on success WIP"""
@@ -58,7 +69,7 @@ class Client:
         if message.command == IRC_COMMANDS.USER:
             self._handle_user(message)
 
-        # user_name implies real_name is present
+        # user_name implies realname is present
         if self._username and self._nick:
             self.is_registered = True
 
@@ -84,23 +95,44 @@ class Client:
 
     def _handle_user(self, message: Message):
         """Handle USER command"""
-        if self._is_registered:
+        if self.is_registered:
             self.send_message(
                 IRC_ERRORS.ALREADY_REGISTERED,
                 ":Unauthorized command (already registered)",
             )
             return
 
-        print(message)
         if len(message.parameters) < 4:
-            self.send_message(IRC_ERRORS.NEED_MORE_PARAMS, "")
+            self.send_message(
+                IRC_ERRORS.NEED_MORE_PARAMS, "USER :Not enough parameters"
+            )
             return
 
-        self._username = message.parameters[0]
-        self._real_name = message.parameters[3]
+        candidate_username = message.parameters[0]
+        candidate_realname = message.parameters[3]
+
+        if candidate_username == "" or candidate_realname == "":
+            self.send_message(
+                IRC_ERRORS.NEED_MORE_PARAMS,
+                "USER :username or realname not long enough",
+            )
+            return
+
+        self._username = candidate_username
+        self._realname = candidate_realname
+
+    def _handle_ping(self, message: Message):
+        """Handle PING command"""
+        if not len(message.parameters) or not len(message.parameters[0]):
+            self.send_message(IRC_ERRORS.NEED_MORE_PARAMS, "PING :a token must be sent")
+        token = message.parameters[0]
+
+        self.send_message(IRC_COMMANDS.PONG, f"{constants.SERVER_NAME} {token}")
 
     def send_message(self, numeric: str, message: str):
         """Write message to the out buffer of this client instance
+
+        Formats in the client name
 
         https://modern.ircdocs.horse/#numeric-replies
         numeric: 3 digit code per docs

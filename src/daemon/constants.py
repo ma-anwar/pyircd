@@ -8,6 +8,8 @@ class IRC_COMMANDS(str, Enum):
     NICK = "NICK"
     USER = "USER"
     PASS = "PASS"
+    PING = "PING"
+    PONG = "PONG"
 
 
 @unique

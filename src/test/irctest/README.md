@@ -12,4 +12,19 @@ Furthermore, copy `pyproject.toml` to the `irctest`. Finally run `poetry install
 
 To run the tests, first set an environment variable pointing to the root directory of `pyircd`, for example, `export PYIRCD_DIR=/home/me/pyircd/`.
 
-A selection of tests can then be run with a command such as, `pytest --controller irctest.controllers.pyircd_controller  -k 'not Ergo and not deprecated and not strict and connection_registration' --verbose`.
+Next copy over the names of the passing tests (present in this directory) into the root of the irctest directory, `cp passing_tests.txt irctest/`.
+
+Finally run `pytest --controller irctest.controllers.pyircd_controller $(tr '\n' ' ' <passing_tests.txt) --verbose
+` to run the tests.
+
+### Debugging Tests
+
+Sometimes during development a test may hang for various reasons. In this case, it's useful to see daemon output as the test executes. To do so, do as follows:
+1. Run the server separately
+2. Specify the host and port in env vars (we're going to use the external controller to run the daemon)
+```
+export IRCTEST_SERVER_PORT=6667
+export IRCTEST_SERVER_HOSTNAME=localhost
+```
+3. Now run the tests like so:
+`pytest --controller irctest.controllers.external_server $(tr '\n' ' ' <single.txt) --verbose` where `single.txt` contains the test(s) you want to run. It's recommended to run only a single test so that state created during one test does not affect state in the next (this is recommended only when using the external controller).

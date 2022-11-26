@@ -1,0 +1,3 @@
+irctest/server_tests/connection_registration.py::PasswordedConnectionRegistrationTestCase::testPassBeforeNickuser
+irctest/server_tests/connection_registration.py::ConnectionRegistrationTestCase::testEmptyRealname
+irctest/server_tests/connection_registration.py::ConnectionRegistrationTestCase::testNickCollision
