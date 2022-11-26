@@ -65,10 +65,11 @@ class Parser:
         stripped_message = message_str[:-delimiter_length]
 
         # Accept messages that exceed MAX_LINE_LENGTH, but slice them
-        if len(stripped_message) > constants.MAX_LINE_LENGTH - 2:
-            stripped_message = stripped_message[: constants.MAX_LINE_LENGTH - 2]
-        else:
-            stripped_message = stripped_message
+        # https://modern.ircdocs.horse/#compatibility-with-incorrect-software
+        if len(stripped_message) > constants.MAX_LINE_LENGTH - delimiter_length:
+            stripped_message = stripped_message[
+                : constants.MAX_LINE_LENGTH - delimiter_length
+            ]
 
         # Split message by space
         split_message = stripped_message.split()
@@ -87,7 +88,7 @@ class Parser:
         parsed_message = Message(
             message.client_address,
             "HANDLE",
-            stripped_message,
+            message.message,
             message.key,
             command,
             parameters,
