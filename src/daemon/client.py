@@ -47,7 +47,7 @@ class Client:
         self.send_message(IRC_REPLIES.WELCOME, ":Welcome to Pyircd")
         self.send_message(IRC_REPLIES.YOURHOST, ":This daemon is being developed.")
         self.send_message(IRC_REPLIES.CREATED, ":This server was started recently")
-        self.send_message(IRC_REPLIES.MYINFO, "Pyircd More info sooon!")
+        self.send_message(IRC_REPLIES.MYINFO, ":Pyircd More info sooon!")
 
     def handle_message(self, message: Message):
         """Handle message by invoking registration flow"""
@@ -132,8 +132,7 @@ class Client:
     def send_message(self, numeric: str, message: str):
         """Write message to the out buffer of this client instance
 
-        Formats in the client name
-
+        Constructs message according to spec below
         https://modern.ircdocs.horse/#numeric-replies
         numeric: 3 digit code per docs
         message: utf-8 string, optionally terminated with \r\n
