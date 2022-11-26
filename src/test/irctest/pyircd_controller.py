@@ -25,8 +25,8 @@ class PyIrcdController(BaseServerController):
 
     def run(
         self,
-        host,
-        port,
+        host="127.0.0.1",
+        port="6667",
         password=None,
         valid_metadata_keys=None,
         invalid_metadata_keys=None,
@@ -44,7 +44,7 @@ class PyIrcdController(BaseServerController):
 
         os.chdir(pyircd_dir)
 
-        run_daemon_command = f"poetry run python {daemon}"
+        run_daemon_command = f"poetry run python {daemon} --host {host} --port {port}"
 
         self.proc = subprocess.Popen(run_daemon_command.split())
 
