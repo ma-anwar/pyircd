@@ -2,7 +2,7 @@
 
 ### Setup
 
-The files here are to be used with the (irctest)[https://github.com/progval/irctest] repo to run integration tests against Pyircd.
+The files here are to be used with the [irctest](https://github.com/progval/irctest) repo to run integration tests against Pyircd. The repo contains tests for many different specs of the IRC protocol. We have included a file and instructions to run tests that match our implementation below.
 
 To get started, copy `pyircd_controller.py` to `irctest/irctest/controllers`. This will manage the setup and teardown process for the daemon between tests.
 
