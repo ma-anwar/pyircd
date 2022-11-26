@@ -22,6 +22,9 @@ You should see output indicating a bunch of checks running such as "Fix End of F
 
 ## Running the Daemon
 
-To run the daemon, `poetry run python src/daemon/daemon.py`.
+To run the daemon, `poetry run python src/daemon/daemon.py`. The daemon expects to be run from the root directory in order to find the logging config.
 
 To test with the client `poetry run python src/utils/client.py`.
+
+### Configuring Logs
+Logging can be configured to offer different levels of verbosity or different formats. This can be done by modifying `logging_config.yml`.

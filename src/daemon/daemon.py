@@ -1,11 +1,12 @@
 """This module sets up the event bus, parser and starts the server"""
 import logging
-import sys
+import logging.config
 from argparse import ArgumentParser, Namespace
 
 import constants
 import utils
-from event_bus import EventBus
+import yaml
+from message_bus import MessageBus
 from parser import Parser
 from server import Server
 
@@ -37,17 +38,24 @@ def parse_args() -> Namespace:
     return parser.parse_args()
 
 
+def setup_logging():
+    with open("logging_config.yml", "rt") as f:
+        config = yaml.safe_load(f.read())
+
+    logging.config.dictConfig(config)
+
+
 def main() -> None:
     """Get parsed commandline arguments, setup event_bus, parser and start server"""
+    setup_logging()
+
     args = parse_args()
     host, port = args.host, args.port
 
-    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
-
     utils.print_logo()
 
-    event_bus = EventBus()
-    parser = Parser(event_bus.dispatch)
+    message_bus = MessageBus()
+    parser = Parser(message_bus.dispatch)
     Server(host, port, parser.dispatch)
 
 
