@@ -3,12 +3,14 @@ import logging
 from selectors import SelectorKey
 
 import constants
-from constants import IRC_COMMANDS, IRC_REPLIES
+from constants import IRC_COMMANDS, IRC_ERRORS, IRC_REPLIES
 from message import Message
 
 
 class Client:
     """Class responsible for handling messages related to client connections"""
+
+    registered_nicks = []
 
     def __init__(self, address: str, key: SelectorKey):
         self._logger = logging.getLogger(__name__)
@@ -30,50 +32,84 @@ class Client:
         self._is_registered = is_registered
         if is_registered:
             self._send_registration_success()
+            Client.registered_nicks.append(self._nick)
 
     def _send_registration_success(self):
         """Complete the registration flow as per IRC spec
 
         https://modern.ircdocs.horse/#connection-registration
         """
-        self.send_message(f"{IRC_REPLIES.WELCOME} {self._nick} :Welcome to PyIrcd.")
-        self.send_message(
-            f"{IRC_REPLIES.YOURHOST} {self._nick} :This daemon is being developed."
-        )
-        self.send_message(
-            f"{IRC_REPLIES.CREATED} {self._nick} : This server was started recently."
-        )
-        self.send_message(f"{IRC_REPLIES.MYINFO} {self._nick} PyIrcd More info sooon!")
+        self.send_message(IRC_REPLIES.WELCOME, ":Welcome to Pyircd")
+        self.send_message(IRC_REPLIES.YOURHOST, ":This daemon is being developed.")
+        self.send_message(IRC_REPLIES.CREATED, ":This server was started recently")
+        self.send_message(IRC_REPLIES.MYINFO, "Pyircd More info sooon!")
 
     def handle_message(self, message: Message):
         """Handle message by invoking registration flow"""
         self._logger.debug(message)
         if not self.is_registered:
-            self.handle_registration_flow(message)
+            self._handle_registration_flow(message)
 
-    def handle_registration_flow(self, message: Message):
+    def _handle_registration_flow(self, message: Message):
         """Handle registration state and ultimately send reply on success WIP"""
-        # WIP Need to handle error cases
-        if message.command == IRC_COMMANDS.NICK and message.parameters[0]:
-            self._nick = message.parameters[0]
+        if message.command == IRC_COMMANDS.NICK:
+            self._handle_nick(message)
 
         if message.command == IRC_COMMANDS.USER:
-            if len(message.parameters) < 4:
-                self._logger.debug("ERROR: Not enough params")
-
-            self._username = message.parameters[0]
-            self._real_name = message.parameters[3]
+            self._handle_user(message)
 
         # user_name implies real_name is present
         if self._username and self._nick:
             self.is_registered = True
 
-    def send_message(self, message: str):
+    def _handle_nick(self, message: Message):
+        """Handle NICK command"""
+        if self._is_registered:
+            return
+
+        candidate_nick = message.parameters[0] if len(message.parameters) > 0 else None
+
+        if not candidate_nick:
+            self.send_message(IRC_ERRORS.NO_NICKNAME_GIVEN, ":No nickname given")
+            return
+
+        if candidate_nick in Client.registered_nicks:
+            self.send_message(
+                IRC_ERRORS.NICKNAME_IN_USE,
+                f"{candidate_nick}:Nickname is already in use",
+            )
+            return
+
+        self._nick = candidate_nick
+
+    def _handle_user(self, message: Message):
+        """Handle USER command"""
+        if self._is_registered:
+            self.send_message(
+                IRC_ERRORS.ALREADY_REGISTERED,
+                ":Unauthorized command (already registered)",
+            )
+            return
+
+        print(message)
+        if len(message.parameters) < 4:
+            self.send_message(IRC_ERRORS.NEED_MORE_PARAMS, "")
+            return
+
+        self._username = message.parameters[0]
+        self._real_name = message.parameters[3]
+
+    def send_message(self, numeric: str, message: str):
         """Write message to the out buffer of this client instance
 
+        https://modern.ircdocs.horse/#numeric-replies
+        numeric: 3 digit code per docs
         message: utf-8 string, optionally terminated with \r\n
         """
-        message_as_bytes = message.encode()
+        constructed_messsage = (
+            f"{constants.MESSAGE_PREFIX} {numeric} {self._nick} {message}"
+        )
+        message_as_bytes = constructed_messsage.encode()
 
         if not message_as_bytes.endswith(constants.IRC_TERMINATION_DELIMITER):
             message_as_bytes += constants.IRC_TERMINATION_DELIMITER

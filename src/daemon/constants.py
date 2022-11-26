@@ -10,6 +10,14 @@ class IRC_COMMANDS(str, Enum):
     PASS = "PASS"
 
 
+@unique
+class IRC_ERRORS(str, Enum):
+    NO_NICKNAME_GIVEN = "431"
+    NICKNAME_IN_USE = "432"
+    ALREADY_REGISTERED = "462"
+    NEED_MORE_PARAMS = "461"
+
+
 # https://modern.ircdocs.horse/#numerics
 @unique
 class IRC_REPLIES(str, Enum):
@@ -83,3 +91,5 @@ VALID_ALPHA_COMMANDS = [
     "USERHOST",
     "WALLOPS",
 ]
+SERVER_NAME = "pyircd"
+MESSAGE_PREFIX = f":{SERVER_NAME} "
