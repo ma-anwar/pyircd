@@ -173,7 +173,7 @@ class Server:
         # so we can access it whenever we access the socket
         key = SimpleNamespace(is_server_socket=True)
 
-        # We are only interested in reading new cxn information fron server_socket
+        # We are only interested in reading new cxn information from server_socket
         self._selector.register(server_socket, selectors.EVENT_READ, data=key)
         self._run_event_loop()
 
