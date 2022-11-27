@@ -12,6 +12,8 @@ class IRC_COMMANDS(str, Enum):
     PASS = "PASS"
     PING = "PING"
     PONG = "PONG"
+    QUIT = "QUIT"
+    ERROR = "ERROR"
 
 
 @unique

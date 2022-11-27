@@ -41,6 +41,7 @@ class Server:
             in_buffer=b"",
             out_buffer=b"",
             is_server_socket=False,
+            unregister_socket=False,
         )
 
         events = selectors.EVENT_READ | selectors.EVENT_WRITE
@@ -83,8 +84,8 @@ class Server:
         else:
             self._logger.info(f"Closing connection to {address}")
             self._selector.unregister(socket)
-            # TODO: Notify downstream
             socket.close()
+            # TODO: Notify downstream
 
     def _dispatch_message_to_parser(self, key: SelectorKey):
         """Retrieve data from buffer, build Message and dispatch to parser"""
@@ -152,7 +153,12 @@ class Server:
                 except ConnectionError as e:
                     self._logger.debug(f"Connection error {e}, deregistering socket")
                     self._selector.unregister(socket)
+                    socket.close()
                     # TODO: Notify downstream
+                    return
+                if key.data.unregister_socket:
+                    self._selector.unregister(socket)
+                    socket.close()
                     return
 
     def _start_server(self):

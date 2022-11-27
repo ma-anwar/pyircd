@@ -4,3 +4,5 @@ irctest/server_tests/connection_registration.py::ConnectionRegistrationTestCase:
 irctest/server_tests/pingpong.py::PingPongTestCase::testPing
 irctest/server_tests/pingpong.py::PingPongTestCase::testPingNoToken
 irctest/server_tests/pingpong.py::PingPongTestCase::testPingEmptyToken
+irctest/server_tests/connection_registration.py::ConnectionRegistrationTestCase::testQuitDisconnects
+irctest/server_tests/connection_registration.py::ConnectionRegistrationTestCase::testQuitErrors

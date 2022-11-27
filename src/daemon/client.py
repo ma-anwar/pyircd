@@ -1,6 +1,7 @@
 """This module represents a client and defines client message handlers"""
 import logging
 from selectors import SelectorKey
+from typing import Callable
 
 import config
 import constants
@@ -13,7 +14,7 @@ class Client:
 
     registered_nicks = []
 
-    def __init__(self, address: str, key: SelectorKey):
+    def __init__(self, address: tuple, key: SelectorKey, unregister_callback: Callable):
         self._logger = logging.getLogger(__name__)
         self._is_registered = False
         self._nick = ""
@@ -21,10 +22,12 @@ class Client:
         self._username = ""
         self._key = key
         self.address = address
+        self._unregister_callback = unregister_callback
         self._handlers = {
             IRC_COMMANDS.PING: self._handle_ping,
             IRC_COMMANDS.USER: self._handle_user,
             IRC_COMMANDS.NICK: self._handle_nick,
+            IRC_COMMANDS.QUIT: self._handle_quit,
         }
 
     @property
@@ -132,6 +135,16 @@ class Client:
         self.send_message(
             IRC_COMMANDS.PONG, f"{config.SERVER_NAME} {token}", include_nick=False
         )
+
+    def _handle_quit(self, message: Message):
+        """Handle QUIT command"""
+        reason = message.parameters[0] if message.parameters else ""
+        self.send_message(IRC_COMMANDS.ERROR, f"QUIT: {reason}")
+
+        # Signal to Server to unregister after sending QUIT
+        self._key.data.unregister_socket = True
+        # Unregister from message_bus
+        self._unregister_callback()
 
     def send_message(self, numeric: str, message: str, include_nick: bool = True):
         """Write message to the out buffer of this client instance
