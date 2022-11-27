@@ -25,6 +25,7 @@ class MessageBus:
         self._handle_message(message)
 
     def _create_new_client(self, message: Message, unregister_callback: Callable):
+        """Create new client instance"""
         return Client(message.client_address, message.key, unregister_callback)
 
     def _get_client(self, message: Message):
