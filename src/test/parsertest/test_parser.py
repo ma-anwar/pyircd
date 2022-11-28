@@ -6,6 +6,32 @@ from message_bus import MessageBus
 from parser import Parser
 
 
+def load_data():
+    res = []
+    # change yaml subtitles, source related, change needed tests
+    data = yaml.safe_load(open("src/test/parsertest/parser_tests.yaml").read())
+    tests = data["tests"]
+    for test in tests:
+        atom = test["atoms"]
+        raw_message = test["message"][0].encode("utf-8") + b"\r\n"
+        message = Message("localhost", "PARSE", raw_message, "key")
+        params = atom.get("params") if atom.get("params") else []
+        command = atom.get("command") if atom.get("command") else ""
+        parsed_message = Message(
+            "localhost",
+            "HANDLE",
+            raw_message,
+            "key",
+            command,
+            params,
+        )
+        res.append((message, parsed_message))
+    return res
+
+
+DATA = load_data()
+
+
 @pytest.fixture
 def parser():
     """Returns a Parser instance"""
@@ -13,24 +39,7 @@ def parser():
     return Parser(event_bus.dispatch)
 
 
-def tests_from_yaml(parser):
-    # Currently just for first one, will modify the yaml and
-    # loop through all of the valid tests we need.
-    data = yaml.safe_load(open("src/test/parsertest/parser_tests.yaml").read())
-
-    test = data["tests"][0]
-    atoms = test["atoms"]
-    matches = test["matches"]
-    matches[0] = matches[0] + "\r\n"
-
-    message = Message("localhost", "PARSE", matches[0].encode("utf-8"), "key")
-    parsed_message = Message(
-        "localhost",
-        "HANDLE",
-        matches[0].encode("utf-8"),
-        "key",
-        atoms.get("verb"),
-        atoms.get("params"),
-    )
-    res = parser._parse_message(message)
-    assert parsed_message == res
+@pytest.mark.parametrize("message, parsed_message", DATA)
+def tests_from_yaml(parser, message, parsed_message):
+    for message, parsed_message in DATA:
+        assert parsed_message == parser._parse_message(message)
