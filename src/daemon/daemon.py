@@ -3,6 +3,7 @@ import logging
 import logging.config
 from argparse import ArgumentParser, Namespace
 
+import config
 import constants
 import utils
 import yaml
@@ -19,21 +20,22 @@ def parse_args() -> Namespace:
         "--host",
         type=str,
         required=False,
-        help="Seed to be used",
+        help="Host address to run server on",
         default=constants.LOCAL_HOST,
     )
     parser.add_argument(
         "--port",
         required=False,
         type=int,
-        help="Number of hosts to simulate",
+        help="Port to listen on",
         default=constants.DEFAULT_PORT,
     )
     parser.add_argument(
-        "--debug",
+        "--name",
+        type=str,
         required=False,
-        help="Print state of each host per iteration",
-        action="store_true",
+        help="Name of server",
+        default="pyircd",
     )
     return parser.parse_args()
 
@@ -50,9 +52,11 @@ def main() -> None:
     setup_logging()
 
     args = parse_args()
-    host, port = args.host, args.port
+    host, port, name = args.host, args.port, args.name
 
     utils.print_logo()
+
+    config.init(name)
 
     message_bus = MessageBus()
     parser = Parser(message_bus.dispatch)

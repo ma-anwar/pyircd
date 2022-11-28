@@ -52,7 +52,7 @@ class Parser:
                 break
         return valid_parameters
 
-    def _parse_message(self, message: Message) -> Message:
+    def _parse_message(self, message: Message) -> Message | None:
         """Parse message according to IRC spec
         If parse is successful, forward message to EventBus
         Otherwise, drop message"""
