@@ -14,6 +14,7 @@ class PyIrcdController(BaseServerController):
     )
     port = 6667
     hostname = "localhost"
+    name = "My.Little.Server"
 
     def kill_proc(self) -> None:
         """Kills the process"""
@@ -44,7 +45,9 @@ class PyIrcdController(BaseServerController):
 
         os.chdir(pyircd_dir)
 
-        run_daemon_command = f"poetry run python {daemon} --host {host} --port {port}"
+        run_daemon_command = (
+            f"poetry run python {daemon} --host {host} --port {port} --name {self.name}"
+        )
 
         self.proc = subprocess.Popen(run_daemon_command.split())
 

@@ -1,0 +1,8 @@
+irctest/server_tests/connection_registration.py::PasswordedConnectionRegistrationTestCase::testPassBeforeNickuser
+irctest/server_tests/connection_registration.py::ConnectionRegistrationTestCase::testEmptyRealname
+irctest/server_tests/connection_registration.py::ConnectionRegistrationTestCase::testNickCollision
+irctest/server_tests/pingpong.py::PingPongTestCase::testPing
+irctest/server_tests/pingpong.py::PingPongTestCase::testPingNoToken
+irctest/server_tests/pingpong.py::PingPongTestCase::testPingEmptyToken
+irctest/server_tests/connection_registration.py::ConnectionRegistrationTestCase::testQuitDisconnects
+irctest/server_tests/connection_registration.py::ConnectionRegistrationTestCase::testQuitErrors
