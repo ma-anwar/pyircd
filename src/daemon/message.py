@@ -20,13 +20,3 @@ class Message:
     key: SelectorKey = field(repr=False)
     command: str = ""
     parameters: List[str] = field(default_factory=list)
-
-    def __eq__(self, other):
-        return (
-            self.client_address == other.client_address
-            and self.action == other.action
-            and self.message == other.message
-            and self.key == other.key
-            and self.command == other.command
-            and self.parameters == other.parameters
-        )

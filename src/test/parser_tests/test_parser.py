@@ -8,7 +8,7 @@ from parser import Parser
 
 def load_data():
     res = []
-    data = yaml.safe_load(open("src/test/parsertest/parser_tests.yaml").read())
+    data = yaml.safe_load(open("src/test/parser_tests/parser_tests.yaml").read())
     tests = data["tests"]
     for test in tests:
         atom = test["atoms"]
