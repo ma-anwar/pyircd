@@ -8,7 +8,6 @@ from parser import Parser
 
 def load_data():
     res = []
-    # change yaml subtitles, source related, change needed tests
     data = yaml.safe_load(open("src/test/parsertest/parser_tests.yaml").read())
     tests = data["tests"]
     for test in tests:
