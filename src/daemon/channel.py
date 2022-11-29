@@ -2,15 +2,9 @@ import constants
 
 
 class Channel:
-    def __init__(self, channel_name, channel_topic, client_limit):
-        for x in constants.FORBIDDEN_CHANNELNAME_CHARS:
-            assert (
-                x not in channel_name
-            ), "Please avoid using invalid \
-            characters in the channel name!"
+    def __init__(self, channel_name, channel_topic):
         self.channel_name = channel_name
         self.channel_topic = channel_topic
-        self.client_limit = client_limit
         self.clients = {}  # Key=<Address>, Value=send_message_callback
         # <Address> = ("client_address", "client_port")
 
@@ -22,18 +16,13 @@ class Channel:
             - topic reply code
             - list of clients currently in channel
         Reasoning: https://modern.ircdocs.horse/#join-message
-        If client is banned, send error message and return"""
+        """
 
-        if len(self.clients) == self.client_limit:
-            send_msg(
-                numeric=constants.IRC_ERRORS.ERR_CHANNELISFULL,
-                message=":Cannot join channel (+l)",
-                include_nick=False,
-            )
         if address not in self.clients:
             self.clients[address] = send_msg
         broadcast = self.get_broadcast(address)
-        return broadcast, self.channel_topic, self.clients.keys()
+        other_members = [x for x in self.clients.keys()]
+        return broadcast, self.channel_topic, other_members
 
     def unregister(self, address: tuple):
         """Instance method for unregistering a client from the channel"""

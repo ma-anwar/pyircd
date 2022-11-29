@@ -14,16 +14,19 @@ class IRC_COMMANDS(str, Enum):
     PONG = "PONG"
     QUIT = "QUIT"
     ERROR = "ERROR"
+    JOIN = "JOIN"
 
 
 @unique
 class IRC_ERRORS(str, Enum):
+    ERR_NOSUCHCHANNEL = "403"
     NO_NICKNAME_GIVEN = "431"
     NICKNAME_IN_USE = "432"
     ERR_NOTONCHANNEL = "442"
     NEED_MORE_PARAMS = "461"
     ALREADY_REGISTERED = "462"
     ERR_CHANNELISFULL = "471"
+    ERR_BADCHANMASK = "476"
 
 
 # https://modern.ircdocs.horse/#numerics

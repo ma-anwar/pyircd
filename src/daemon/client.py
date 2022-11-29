@@ -3,6 +3,7 @@ import logging
 from selectors import SelectorKey
 from typing import Callable
 
+import channel
 import config
 import constants
 from constants import IRC_COMMANDS, IRC_ERRORS, IRC_REPLIES
@@ -13,6 +14,7 @@ class Client:
     """Class responsible for handling messages related to client connections"""
 
     registered_nicks = []
+    channels = {}  # Key: channel_name, Value=Channel()
 
     def __init__(self, address: tuple, key: SelectorKey, unregister_callback: Callable):
         self._logger = logging.getLogger(__name__)
@@ -28,7 +30,10 @@ class Client:
             IRC_COMMANDS.USER: self._handle_user,
             IRC_COMMANDS.NICK: self._handle_nick,
             IRC_COMMANDS.QUIT: self._handle_quit,
+            IRC_COMMANDS.JOIN: self._handle_join
+            # TODO: Implement _handle_part
         }
+        self.joined_channels = {}  # Key=channel_name, Value=broadcast:callable
 
     @property
     def is_registered(self):
@@ -145,6 +150,52 @@ class Client:
         self._key.data.unregister_socket = True
         # Unregister from message_bus
         self._unregister_callback()
+
+    def _handle_join(self, message: Message):
+        """Handle JOIN command"""
+        if len(message.parameters < 1):
+            self.send_message(IRC_ERRORS.NEED_MORE_PARAMS, ":Not enough parameters")
+            return
+
+        channel_name = message.parameters[0]
+        if channel_name not in self.channels:  # If not exists, create new channel
+            for x in constants.FORBIDDEN_CHANNELNAME_CHARS:
+                if x in channel_name:
+                    self.send_message(
+                        IRC_ERRORS.ERR_BADCHANMASK, "Invalid channel name!"
+                    )
+                    return
+            new_channel = channel.Channel(channel_name, "")
+            self.channels[channel_name] = new_channel
+
+        # Get broadcast function from channel
+        broadcast, topic, other_members = self.channels[channel_name].register(
+            self.address, self.send_message
+        )
+
+        if topic != "":
+            topic_code = IRC_REPLIES.RPL_TOPIC
+        else:
+            topic_code = IRC_REPLIES.RPL_NOTOPIC
+            topic = "No topic is set"
+
+        # Add channel to joined_channels with broadcast function as value
+        self.joined_channels[channel_name] = broadcast
+
+        # Announce arrival to channel
+        broadcast(
+            numeric="",
+            message=f"{self._nick} \
+                ({self.address[0]}:{self.address[1]}) has joined #{channel_name}",
+        )
+        # Send JOIN message to client
+        self.send_message(
+            IRC_REPLIES.WELCOME, message=f"Successfully joined #{channel_name}"
+        )
+        # Send channel topic to client
+        self.send_message(topic_code, message=f": {topic}")
+        # Send list of other clients in the channel to client
+        self.send_message("", message=f"Channel members: {other_members}")
 
     def send_message(self, numeric: str, message: str, include_nick: bool = True):
         """Write message to the out buffer of this client instance
