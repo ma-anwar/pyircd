@@ -24,7 +24,6 @@ class IRC_ERRORS(str, Enum):
     NEED_MORE_PARAMS = "461"
     ALREADY_REGISTERED = "462"
     ERR_CHANNELISFULL = "471"
-    ERR_BANNEDFROMCHAN = "474"
 
 
 # https://modern.ircdocs.horse/#numerics
@@ -109,11 +108,8 @@ MESSAGE_PREFIX = f":{config.SERVER_NAME} "
 FORBIDDEN_CHANNELNAME_CHARS = [
     " ",
     ",",
-    bytes.fromhex('00000007').decode('utf-8')   # The ^G character (0x07)
+    bytes.fromhex("00000007").decode("utf-8"),  # The ^G character (0x07)
 ]
 
 # https://modern.ircdocs.horse/#channel-types
-CHANNEL_TYPES = {
-    'regular':'#',
-    'local':'&'
-}
+CHANNEL_TYPES = {"regular": "#", "local": "&"}
