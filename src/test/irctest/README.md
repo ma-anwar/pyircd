@@ -12,6 +12,10 @@ Furthermore, copy `pyproject.toml` to the `irctest`. Finally run `poetry install
 
 To run the tests, first set an environment variable pointing to the root directory of `pyircd`, for example, `export PYIRCD_DIR=/home/me/pyircd/`.
 
+Also set the following environment variables:
+`export IRCTEST_SERVER_HOSTNAME=127.0.0.1`
+`export IRCTEST_SERVER_PORT=6777`
+
 Next copy over the names of the passing tests (present in this directory) into the root of the irctest directory, `cp passing_tests.txt irctest/`.
 
 Finally run `pytest --controller irctest.controllers.pyircd_controller $(tr '\n' ' ' <passing_tests.txt) --verbose
