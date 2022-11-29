@@ -20,8 +20,11 @@ class IRC_COMMANDS(str, Enum):
 class IRC_ERRORS(str, Enum):
     NO_NICKNAME_GIVEN = "431"
     NICKNAME_IN_USE = "432"
-    ALREADY_REGISTERED = "462"
+    ERR_NOTONCHANNEL = "442"
     NEED_MORE_PARAMS = "461"
+    ALREADY_REGISTERED = "462"
+    ERR_CHANNELISFULL = "471"
+    ERR_BANNEDFROMCHAN = "474"
 
 
 # https://modern.ircdocs.horse/#numerics
@@ -31,7 +34,8 @@ class IRC_REPLIES(str, Enum):
     YOURHOST = "002"
     CREATED = "003"
     MYINFO = "004"
-    RPL_TOPIC = "332" 
+    RPL_NOTOPIC = "331"
+    RPL_TOPIC = "332"
 
 
 # https://modern.ircdocs.horse/#message-format
@@ -98,6 +102,7 @@ VALID_ALPHA_COMMANDS = [
     "USERHOST",
     "WALLOPS",
 ]
+
 MESSAGE_PREFIX = f":{config.SERVER_NAME} "
 
 # https://modern.ircdocs.horse/#channels
