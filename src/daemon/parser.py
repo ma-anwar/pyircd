@@ -58,7 +58,11 @@ class Parser:
         Otherwise, drop message"""
 
         # Decode message
-        message_str = message.message.decode("utf-8")
+        try:
+            message_str = message.message.decode("utf-8")
+        except:
+            print("Could not decode message from utf-8 encoding!")
+            return
 
         # Remove EOL delimiter
         delimiter_length = len(constants.IRC_TERMINATION_DELIMITER)
