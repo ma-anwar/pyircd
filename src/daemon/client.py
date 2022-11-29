@@ -11,7 +11,10 @@ from message import Message
 
 
 class Client:
-    """Class responsible for handling messages related to client connections"""
+    """Class responsible for handling messages related to client connections
+    channel_name is stored in lowercase for both `channels` and `joined_channels`
+    The actual Channel.name is not stored in lowercase
+    """
 
     registered_nicks = []
     channels = {}  # Key: channel_name, Value=Channel()
@@ -168,7 +171,7 @@ class Client:
         else:  # Base case
             channel_name = message.parameters[0]
 
-            if channel_name in self.joined_channels:
+            if channel_name.lower() in self.joined_channels:
                 return
             if len(channel_name) < 1 or channel_name[0] != "#":
                 return
@@ -180,12 +183,12 @@ class Client:
                         )
                         return
                 new_channel = channel.Channel(channel_name, "")
-                self.channels[channel_name] = new_channel
+                self.channels[channel_name.lower()] = new_channel
 
             # Get broadcast function from channel
-            broadcast, topic, other_members = self.channels[channel_name].register(
-                self.address, self.send_message
-            )
+            broadcast, topic, other_members = self.channels[
+                channel_name.lower()
+            ].register(self.address, self.send_message)
 
             if topic != "":
                 topic_code = IRC_REPLIES.RPL_TOPIC
@@ -194,7 +197,7 @@ class Client:
                 topic = "No topic is set"
 
             # Add channel to joined_channels with broadcast function as value
-            self.joined_channels[channel_name] = broadcast
+            self.joined_channels[channel_name.lower()] = broadcast
 
             # Announce arrival to channel
             broadcast(
