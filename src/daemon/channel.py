@@ -1,8 +1,14 @@
+import constants
+
 class Channel:
-    def __init__(self, channel_name):
+    def __init__(self, channel_name, channel_type, channel_topic):
+        for x in constants.FORBIDDEN_CHANNELNAME_CHARS:
+            assert x not in channel_name, "Please avoid using invalid characters in the channel name!"
         self.channel_name = channel_name
-        self.clients = {}  # Key=<Address>, Value=send_message_callback
-        # <Address> = ("client_address", "client_port")
+        self.channel_prefix = constants.CHANNEL_TYPES[channel_type]
+        self.channel_topic = channel_topic
+        self.clients = {}   # Key=<Address>, Value=send_message_callback
+                            # <Address> = ("client_address", "client_port")
 
     def register(self, address: tuple, send_msg: callable):
         """Called as an instance method
@@ -34,3 +40,9 @@ class Channel:
                     send_msg(message)
 
         return broadcast
+
+    # https://modern.ircdocs.horse/#topic-message
+    def change_topic(self, new_topic):
+        self.channel_topic = new_topic
+        for send_msg in self.clients.values():  # Announce topic change to all clients
+            send_msg(constants.IRC_REPLIES.RPL_TOPIC, f":{new_topic}", include_nick=False)

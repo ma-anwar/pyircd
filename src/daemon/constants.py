@@ -31,6 +31,7 @@ class IRC_REPLIES(str, Enum):
     YOURHOST = "002"
     CREATED = "003"
     MYINFO = "004"
+    RPL_TOPIC = "332" 
 
 
 # https://modern.ircdocs.horse/#message-format
@@ -98,3 +99,16 @@ VALID_ALPHA_COMMANDS = [
     "WALLOPS",
 ]
 MESSAGE_PREFIX = f":{config.SERVER_NAME} "
+
+# https://modern.ircdocs.horse/#channels
+FORBIDDEN_CHANNELNAME_CHARS = [
+    " ",
+    ",",
+    bytes.fromhex('00000007').decode('utf-8')   # The ^G character (0x07)
+]
+
+# https://modern.ircdocs.horse/#channel-types
+CHANNEL_TYPES = {
+    'regular':'#',
+    'local':'&'
+}
