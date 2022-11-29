@@ -153,51 +153,63 @@ class Client:
 
     def _handle_join(self, message: Message):
         """Handle JOIN command"""
-        if len(message.parameters < 1):
+        if len(message.parameters) < 1:  # Error case
             self.send_message(IRC_ERRORS.NEED_MORE_PARAMS, ":Not enough parameters")
             return
 
-        channel_name = message.parameters[0]
-        if channel_name not in self.channels:  # If not exists, create new channel
-            for x in constants.FORBIDDEN_CHANNELNAME_CHARS:
-                if x in channel_name:
-                    self.send_message(
-                        IRC_ERRORS.ERR_BADCHANMASK, "Invalid channel name!"
-                    )
-                    return
-            new_channel = channel.Channel(channel_name, "")
-            self.channels[channel_name] = new_channel
+        elif (
+            len(message.parameters) > 1
+        ):  # Recursive case for processing multiple channels
+            parameters = message.parameters
+            for param in parameters:
+                message.parameters = [param]
+                self._handle_join(message)
 
-        # Get broadcast function from channel
-        broadcast, topic, other_members = self.channels[channel_name].register(
-            self.address, self.send_message
-        )
+        else:  # Base case
+            channel_name = message.parameters[0]
 
-        if topic != "":
-            topic_code = IRC_REPLIES.RPL_TOPIC
-        else:
-            topic_code = IRC_REPLIES.RPL_NOTOPIC
-            topic = "No topic is set"
+            if channel_name in self.joined_channels:
+                return
+            if len(channel_name) < 1 or channel_name[0] != "#":
+                return
+            if channel_name not in self.channels:  # If not exists, create new channel
+                for x in constants.FORBIDDEN_CHANNELNAME_CHARS:
+                    if x in channel_name:
+                        self.send_message(
+                            IRC_ERRORS.ERR_BADCHANMASK, "Invalid channel name!"
+                        )
+                        return
+                new_channel = channel.Channel(channel_name, "")
+                self.channels[channel_name] = new_channel
 
-        # Add channel to joined_channels with broadcast function as value
-        self.joined_channels[channel_name] = broadcast
+            # Get broadcast function from channel
+            broadcast, topic, other_members = self.channels[channel_name].register(
+                self.address, self.send_message
+            )
 
-        # Announce arrival to channel
-        broadcast(
-            numeric="",
-            message=f"{self._nick} \
-                ({self.address[0]}:{self.address[1]}) has joined #{channel_name}",
-        )
-        # Send JOIN message to client
-        self.send_message(
-            IRC_REPLIES.WELCOME, message=f"Successfully joined #{channel_name}"
-        )
-        # Send channel topic to client
-        self.send_message(topic_code, message=f": {topic}")
-        # Send list of other clients in the channel to client
-        self.send_message("", message=f"Channel members: {other_members}")
+            if topic != "":
+                topic_code = IRC_REPLIES.RPL_TOPIC
+            else:
+                topic_code = IRC_REPLIES.RPL_NOTOPIC
+                topic = "No topic is set"
 
-    def send_message(self, numeric: str, message: str, include_nick: bool = True):
+            # Add channel to joined_channels with broadcast function as value
+            self.joined_channels[channel_name] = broadcast
+
+            # Announce arrival to channel
+            broadcast(
+                numeric="",
+                message=f"{self._nick} \
+                    ({self.address[0]}:{self.address[1]}) has joined {channel_name}",
+            )
+            # Send JOIN message to client
+            self.send_message("JOIN", message=channel_name)
+            # Send channel topic to client
+            self.send_message(topic_code, message=f": {topic}")
+            # Send list of other clients in the channel to client
+            self.send_message("", message=f"Channel members: {other_members}")
+
+    def send_message(self, numeric: str, message: str, include_nick: bool = False):
         """Write message to the out buffer of this client instance
 
         Constructs message according to spec below
