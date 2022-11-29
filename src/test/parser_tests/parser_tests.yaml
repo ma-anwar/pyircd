@@ -1,0 +1,118 @@
+tests:
+  # the desc string holds a description of the test
+
+  # the atoms dict has the keys:
+  #   * command: command string
+  #   * params: params split up as a list
+  # if the params key does not exist, assume it is empty
+  # if any other keys do no exist, assume they are null
+  # a key that is null does not exist or is not specified with the
+  #   given input string
+
+  #message is a raw message that matches the atoms
+
+  # simple tests
+  - desc: Simple test with command and params.
+    atoms:
+      command: "AUTHENTICATE"
+      params:
+        - "bar"
+        - "baz"
+        - "asdf"
+    message:
+      - "AUTHENTICATE bar baz :asdf"
+
+  - desc: Simple test with no params.
+    atoms:
+      command: "QUIT"
+    message:
+      - "QUIT"
+
+  - desc: Simple test with empty trailing param.
+    atoms:
+      command: "AWAY"
+      params:
+        - ""
+    message:
+      - "AWAY :"
+
+
+  - desc: Simple test with no colon for last param.
+    atoms:
+      command: "WHOIS"
+      params:
+        - "bar"
+        - "baz"
+        - "asdf"
+    message:
+      - "WHOIS bar baz asdf"
+
+  - desc: Simple test with trailing param.
+    atoms:
+      command: "WHOIS"
+      params:
+        - "bar"
+        - "baz"
+        - "asdf quux"
+    message:
+      - "WHOIS bar baz :asdf quux"
+
+  - desc: Simple test with empty trailing param.
+    atoms:
+      command: "REHASH"
+      params:
+        - "bar"
+        - "baz"
+        - ""
+    message:
+      - "REHASH bar baz :"
+
+  - desc: Simple test with trailing param containing colon.
+    atoms:
+      command: "LINKS"
+      params:
+        - "bar"
+        - "baz"
+        - ":asdf"
+    message:
+      - "LINKS bar baz ::asdf"
+
+  # - desc: Test with trailing containing beginning+end whitespace.
+  #   atoms:
+  #     command: "WHOIS"
+  #     params:
+  #       - "bar"
+  #       - "baz"
+  #       - "  asdf quux "
+  #   message:
+  #     - " WHOIS bar baz :  asdf quux "
+
+  # - desc: Test with trailing containing what looks like another trailing param.
+  #   atoms:
+  #     command: "PRIVMSG"
+  #     params:
+  #       - "bar"
+  #       - "lol :) "
+  #   message:
+  #     - " PRIVMSG bar :lol :) "
+
+
+  # - desc: Trailing contains only spaces.
+  #   atoms:
+  #     command: "WHOIS"
+  #     params:
+  #       - "bar"
+  #       - "baz"
+  #       - "  "
+  #   message:
+  #     - "WHOIS bar baz :  "
+
+  # - desc: Param containing tab (tab is not considered SPACE for message splitting).
+  #   atoms:
+  #     command: "WHOIS"
+  #     params:
+  #       - "b\tar"
+  #       - "baz"
+  #   message:
+  #     - "WHOIS b\tar baz"
+  #     - "WHOIS b\tar :baz"
