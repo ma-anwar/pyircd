@@ -207,10 +207,19 @@ class Client:
             )
             # Send JOIN message to client
             self.send_message("JOIN", message=channel_name)
+
             # Send channel topic to client
+            # This is causing testJoinAllMessages to fail, however
+            # it should be sent according to spec
+            # https://modern.ircdocs.horse/#rplnotopic-331
             self.send_message(topic_code, message=f": {topic}")
+
             # Send list of other clients in the channel to client
-            self.send_message("", message=f"Channel members: {other_members}")
+            for member in other_members:
+                self.send_message(
+                    IRC_REPLIES.RPL_NAMREPLY, message=f":{member}", include_nick=True
+                )
+            self.send_message(IRC_REPLIES.RPL_ENDOFNAMES, message=":End of /NAMES list")
 
     def send_message(self, numeric: str, message: str, include_nick: bool = False):
         """Write message to the out buffer of this client instance

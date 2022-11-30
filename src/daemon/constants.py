@@ -38,6 +38,8 @@ class IRC_REPLIES(str, Enum):
     MYINFO = "004"
     RPL_NOTOPIC = "331"
     RPL_TOPIC = "332"
+    RPL_NAMREPLY = "353"
+    RPL_ENDOFNAMES = "366"
 
 
 # https://modern.ircdocs.horse/#message-format
