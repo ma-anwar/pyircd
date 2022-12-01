@@ -19,14 +19,15 @@ class IRC_COMMANDS(str, Enum):
 
 @unique
 class IRC_ERRORS(str, Enum):
-    ERR_NOSUCHCHANNEL = "403"
+    NOSUCHCHANNEL = "403"
     NO_NICKNAME_GIVEN = "431"
     NICKNAME_IN_USE = "432"
-    ERR_NOTONCHANNEL = "442"
+    NOTONCHANNEL = "442"
     NEED_MORE_PARAMS = "461"
     ALREADY_REGISTERED = "462"
-    ERR_CHANNELISFULL = "471"
-    ERR_BADCHANMASK = "476"
+    CHANNELISFULL = "471"
+    BADCHANMASK = "476"
+    USERONCHANNEL = "443"
 
 
 # https://modern.ircdocs.horse/#numerics
@@ -36,10 +37,10 @@ class IRC_REPLIES(str, Enum):
     YOURHOST = "002"
     CREATED = "003"
     MYINFO = "004"
-    RPL_NOTOPIC = "331"
-    RPL_TOPIC = "332"
-    RPL_NAMREPLY = "353"
-    RPL_ENDOFNAMES = "366"
+    NOTOPIC = "331"
+    TOPIC = "332"
+    NAMREPLY = "353"
+    ENDOFNAMES = "366"
 
 
 # https://modern.ircdocs.horse/#message-format
@@ -115,6 +116,3 @@ FORBIDDEN_CHANNELNAME_CHARS = [
     ",",
     bytes.fromhex("00000007").decode("utf-8"),  # The ^G character (0x07)
 ]
-
-# https://modern.ircdocs.horse/#channel-types
-CHANNEL_TYPES = {"regular": "#", "local": "&"}

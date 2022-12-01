@@ -175,53 +175,49 @@ class Client:
                 return
             if len(channel_name) < 1 or channel_name[0] != "#":
                 return
-            if channel_name not in self.channels:  # If not exists, create new channel
+            if channel_name not in Client.channels:  # If not exists, create new channel
                 for x in constants.FORBIDDEN_CHANNELNAME_CHARS:
                     if x in channel_name:
                         self.send_message(
-                            IRC_ERRORS.ERR_BADCHANMASK, "Invalid channel name!"
+                            IRC_ERRORS.BADCHANMASK, "Invalid channel name!"
                         )
                         return
                 new_channel = channel.Channel(channel_name, "")
-                self.channels[channel_name.lower()] = new_channel
+                Client.channels[channel_name.lower()] = new_channel
 
             # Get broadcast function from channel
-            broadcast, topic, other_members = self.channels[
+            broadcast, topic, other_members = Client.channels[
                 channel_name.lower()
             ].register(self.address, self.send_message)
-
-            if topic != "":
-                topic_code = IRC_REPLIES.RPL_TOPIC
-            else:
-                topic_code = IRC_REPLIES.RPL_NOTOPIC
-                topic = "No topic is set"
 
             # Add channel to joined_channels with broadcast function as value
             self.joined_channels[channel_name.lower()] = broadcast
 
-            # Announce arrival to channel
-            broadcast(
-                numeric="",
-                message=f"{self._nick} \
-                    ({self.address[0]}:{self.address[1]}) has joined {channel_name}",
-            )
-            # Send JOIN message to client
-            self.send_message("JOIN", message=channel_name)
+            # Send JOIN message to channel members and client
+            self.broadcast_arrival(broadcast, channel_name)
 
-            # Send channel topic to client
-            # This is causing testJoinAllMessages to fail, however
-            # it should be sent according to spec
-            # https://modern.ircdocs.horse/#rplnotopic-331
-            self.send_message(topic_code, message=f": {topic}")
+            # Send topic in reply only if there is a topic
+            self.send_topic(topic)
 
             # Send list of other clients in the channel to client
-            for member in other_members:
-                self.send_message(
-                    IRC_REPLIES.RPL_NAMREPLY, message=f":{member}", include_nick=True
-                )
-            self.send_message(IRC_REPLIES.RPL_ENDOFNAMES, message=":End of /NAMES list")
+            members_str = ", ".join(other_members)
+            self.send_message(
+                IRC_REPLIES.NAMREPLY, message=f":{members_str}", include_nick=True
+            )
+            self.send_message(IRC_REPLIES.ENDOFNAMES, message=":End of /NAMES list")
 
-    def send_message(self, numeric: str, message: str, include_nick: bool = False):
+    def broadcast_arrival(self, broadcast: callable, channel_name: str):
+        # Send JOIN message to channel
+        broadcast(numeric="JOIN", message=channel_name)
+        # Send JOIN message to client
+        self.send_message("JOIN", message=channel_name)
+
+    def send_topic(self, topic):
+        if topic != "":
+            topic_code = IRC_REPLIES.TOPIC
+            self.send_message(topic_code, message=f": {topic}", include_nick=False)
+
+    def send_message(self, numeric: str, message: str, include_nick: bool = True):
         """Write message to the out buffer of this client instance
 
         Constructs message according to spec below
