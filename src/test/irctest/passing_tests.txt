@@ -6,3 +6,6 @@ irctest/server_tests/pingpong.py::PingPongTestCase::testPingNoToken
 irctest/server_tests/pingpong.py::PingPongTestCase::testPingEmptyToken
 irctest/server_tests/connection_registration.py::ConnectionRegistrationTestCase::testQuitDisconnects
 irctest/server_tests/connection_registration.py::ConnectionRegistrationTestCase::testQuitErrors
+irctest/server_tests/join.py::JoinTestCase::testJoinAllMessages
+irctest/server_tests/join.py::JoinTestCase::testJoinNamreply
+irctest/server_tests/join.py::JoinTestCase::testJoinTwice

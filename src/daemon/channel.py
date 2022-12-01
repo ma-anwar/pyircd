@@ -20,19 +20,15 @@ class Channel:
         """
 
         broadcast = self.get_broadcast(address)
-        other_members = [x for x in self.client_nicks.values()]
 
         if address not in self.clients:
             self.clients[address] = send_msg
             self.client_nicks[address] = nickname
-        else:
-            send_msg(
-                numeric=constants.IRC_ERRORS.USERONCHANNEL,
-                message=f"{self.channel_name} :is already on channel",
-                include_nick=True,
-            )
-            return
-        return broadcast, self.channel_topic, other_members
+
+        else:  # Client already on channel, return None
+            return None
+
+        return broadcast
 
     def unregister(self, address: tuple):
         """Instance method for unregistering a client from the channel"""
@@ -65,3 +61,12 @@ class Channel:
                 message=f"New topic is: {new_topic}",
                 include_nick=False,
             )
+
+    def get_members(self):
+        return [x for x in self.client_nicks.values()]
+
+    def get_topic(self):
+        return self.channel_topic
+
+    def get_client_addresses(self):
+        return [x for x in self.clients.keys()]

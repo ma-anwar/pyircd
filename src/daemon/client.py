@@ -182,13 +182,24 @@ class Client:
                             IRC_ERRORS.BADCHANMASK, "Invalid channel name!"
                         )
                         return
-                new_channel = channel.Channel(channel_name, "")
+                new_channel = channel.Channel(channel_name)
                 Client.channels[channel_name.lower()] = new_channel
 
-            # Get broadcast function from channel
-            broadcast, topic, other_members = Client.channels[
-                channel_name.lower()
-            ].register(self.address, self.send_message)
+            # Check whether client is already in channel
+            if (
+                self.address
+                in Client.channels[channel_name.lower()].get_client_addresses()
+            ):
+                self.send_message(
+                    numeric=constants.IRC_ERRORS.USERONCHANNEL,
+                    message=f"{self.channel_name} :is already on channel",
+                    include_nick=True,
+                )
+
+            # Register and get broadcast function from channel
+            broadcast = Client.channels[channel_name.lower()].register(
+                self.address, self.send_message, self._nick
+            )
 
             # Add channel to joined_channels with broadcast function as value
             self.joined_channels[channel_name.lower()] = broadcast
@@ -197,12 +208,15 @@ class Client:
             self.broadcast_arrival(broadcast, channel_name)
 
             # Send topic in reply only if there is a topic
-            self.send_topic(topic)
+            self.send_topic(channel_name)
 
-            # Send list of other clients in the channel to client
-            members_str = ", ".join(other_members)
+            # Send list of users in channel
+            members = Client.channels[channel_name.lower()].get_members()
+            members_str = ", ".join(members)
             self.send_message(
-                IRC_REPLIES.NAMREPLY, message=f":{members_str}", include_nick=True
+                IRC_REPLIES.NAMREPLY,
+                message=f"={channel_name} :{members_str}",
+                include_nick=True,
             )
             self.send_message(IRC_REPLIES.ENDOFNAMES, message=":End of /NAMES list")
 
@@ -210,9 +224,10 @@ class Client:
         # Send JOIN message to channel
         broadcast(numeric="JOIN", message=channel_name)
         # Send JOIN message to client
-        self.send_message("JOIN", message=channel_name)
+        self.send_message("JOIN", message=channel_name, include_nick=False)
 
-    def send_topic(self, topic):
+    def send_topic(self, channel_name):
+        topic = Client.channels[channel_name.lower()].get_topic()
         if topic != "":
             topic_code = IRC_REPLIES.TOPIC
             self.send_message(topic_code, message=f": {topic}", include_nick=False)
