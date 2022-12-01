@@ -195,6 +195,7 @@ class Client:
                     message=f"{self.channel_name} :is already on channel",
                     include_nick=True,
                 )
+                return
 
             # Register and get broadcast function from channel
             broadcast = Client.channels[channel_name.lower()].register(
