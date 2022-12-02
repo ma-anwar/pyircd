@@ -16,6 +16,7 @@ class IRC_COMMANDS(str, Enum):
     ERROR = "ERROR"
     JOIN = "JOIN"
     PART = "PART"
+    LUSERS = "LUSERS"
 
 
 @unique
@@ -42,6 +43,8 @@ class IRC_REPLIES(str, Enum):
     TOPIC = "332"
     NAMREPLY = "353"
     ENDOFNAMES = "366"
+    LUSERCLIENT = "251"
+    LUSERME = "255"
 
 
 # https://modern.ircdocs.horse/#message-format
@@ -107,6 +110,7 @@ VALID_ALPHA_COMMANDS = [
     "LINKS",
     "USERHOST",
     "WALLOPS",
+    "LUSERS",
 ]
 
 MESSAGE_PREFIX = f":{config.SERVER_NAME} "

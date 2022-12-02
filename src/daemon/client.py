@@ -35,6 +35,8 @@ class Client:
             IRC_COMMANDS.QUIT: self._handle_quit,
             IRC_COMMANDS.JOIN: self._handle_join,
             IRC_COMMANDS.PART: self._handle_part,
+            IRC_COMMANDS.LUSERS: self._handle_lusers,
+            
         }
         self.joined_channels = {}  # Key=channel_name, Value=broadcast:callable
 
@@ -266,6 +268,22 @@ class Client:
             if not len(Client.channels[channel_name.lower()].get_client_addresses()):
                 Client.channels.pop(channel_name.lower())
 
+    def _handle_lusers(self, message: Message):
+        """Handle LUSERS command"""
+        # We do not support invisible clients and other servers
+        # joining, thus we set those to 0.
+        num_users = len(Client.registered_nicks)
+        self.send_message(
+            numeric=IRC_REPLIES.LUSERCLIENT,
+            message=f":There are {num_users} users and 0 invisible on 0 servers",
+            include_nick=True,
+        )
+        self.send_message(
+            numeric=IRC_REPLIES.LUSERME,
+            message=f":I have {num_users} clients and 0 servers",
+            include_nick=True,
+        )
+
     def broadcast_arrival(self, broadcast: callable, channel_name: str):
         """Send JOIN messages announcing that user has arrived"""
         # Send JOIN message to channel
@@ -300,7 +318,7 @@ class Client:
         if topic != "":
             topic_code = IRC_REPLIES.TOPIC
             self.send_message(topic_code, message=f": {topic}", include_nick=False)
-
+        
     def send_no_such_channel(self, channel_name: str, include_nick: bool = True):
         """Send NOSUCHCHANNEL error to client"""
         self.send_message(
