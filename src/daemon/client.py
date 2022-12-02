@@ -16,7 +16,7 @@ class Client:
     The actual Channel.name is not stored in lowercase
     """
 
-    registered_nicks = []
+    registered_nicks = {}  # Key: nick, Value = send_message_callback
     channels = {}  # Key: channel_name, Value=Channel()
 
     def __init__(self, address: tuple, key: SelectorKey, unregister_callback: Callable):
@@ -36,7 +36,7 @@ class Client:
             IRC_COMMANDS.JOIN: self._handle_join,
             IRC_COMMANDS.PART: self._handle_part,
             IRC_COMMANDS.LUSERS: self._handle_lusers,
-            
+            IRC_COMMANDS.PART: self._handle_privmsg,
         }
         self.joined_channels = {}  # Key=channel_name, Value=broadcast:callable
 
@@ -51,7 +51,7 @@ class Client:
         self._is_registered = is_registered
         if is_registered:
             self._send_registration_success()
-            Client.registered_nicks.append(self._nick)
+            Client.registered_nicks[self._nick] = self.send_message
 
     def _send_registration_success(self):
         """Complete the registration flow as per IRC spec
@@ -283,6 +283,56 @@ class Client:
             message=f":I have {num_users} clients and 0 servers",
             include_nick=True,
         )
+    def _handle_privmsg(self, message: Message, payload: str = ""):
+        if len(message.parameters) < 2 and payload == "":  # Error case
+            self.send_need_more_params(IRC_COMMANDS.PRIVMSG, include_nick=False)
+            return
+        elif (
+            len(message.parameters) > 1
+        ):  # Recursive case (for processing multiple targets)
+            parameters = message.parameters
+            colon_found = 0
+            for i in range(len(parameters)):
+                if (
+                    parameters[i][0] == ":"
+                ):  # Check if reason (non-channel param[s]) exists
+                    payload = " ".join(parameters[i:])
+                    parameters = parameters[:i]
+                    colon_found = 1
+                    break
+
+            if not colon_found:
+                payload = parameters[-1]
+                parameters = parameters[:-1]
+
+            for param in parameters:
+                message.parameters = [param]
+                self._handle_privmsg(message, payload=payload)
+
+        else:  # Base case (1 target && non-empty payload)
+            target = message.parameters[0]
+            payload = ":" + payload
+            if target[0] == "#":  # Target is a channel
+                if target.lower() not in Client.channels:
+                    self.send_no_such_channel(target, include_nick=False)
+                    return
+                if target.lower() not in self.joined_channels:
+                    self.send_not_on_channel(target, include_nick=False)
+                    return
+                # Broadcast to channel
+                broadcast = self.joined_channels[target.lower()]
+                broadcast(numeric=IRC_COMMANDS.PRIVMSG, message=payload)
+                # Send to client
+                self.send_message(numeric=IRC_COMMANDS.PRIVMSG, message=payload)
+                return
+            else:  # Target is a single client
+                if target not in Client.registered_nicks:
+                    self.send_no_such_nick(target, include_nick=False)
+                    return
+                send_msg = Client.registered_nicks[target]
+                send_msg(
+                    numeric=IRC_COMMANDS.PRIVMSG, message=payload, include_nick=True
+                )
 
     def broadcast_arrival(self, broadcast: callable, channel_name: str):
         """Send JOIN messages announcing that user has arrived"""
@@ -340,6 +390,14 @@ class Client:
         self.send_message(
             numeric=IRC_ERRORS.NOTONCHANNEL,
             message=f"{channel_name} :You're not on that channel",
+            include_nick=include_nick,
+        )
+
+    def send_no_such_nick(self, nick: str, include_nick: bool = True):
+        """Send NOSUCHNICK error to client"""
+        self.send_message(
+            numeric=IRC_ERRORS.NOSUCHNICK,
+            message=f"{nick} :No such nick/channel",
             include_nick=include_nick,
         )
 

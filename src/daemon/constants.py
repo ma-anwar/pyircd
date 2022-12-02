@@ -17,10 +17,12 @@ class IRC_COMMANDS(str, Enum):
     JOIN = "JOIN"
     PART = "PART"
     LUSERS = "LUSERS"
+    PRIVMSG = "PRIVMSG"
 
 
 @unique
 class IRC_ERRORS(str, Enum):
+    NOSUCHNICK = "401"
     NOSUCHCHANNEL = "403"
     NO_NICKNAME_GIVEN = "431"
     NICKNAME_IN_USE = "432"
