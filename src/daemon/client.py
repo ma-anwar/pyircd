@@ -269,6 +269,10 @@ class Client:
             Client.channels[channel_name].unregister(self.address)
             self.joined_channels.pop(channel_name)
 
+            # Delete channel if it is empty
+            if not len(Client.channels[channel_name].get_client_addresses()):
+                Client.channels.pop(channel_name)
+
     def broadcast_arrival(self, broadcast: callable, channel_name: str):
         """Send JOIN messages announcing that user has arrived"""
         # Send JOIN message to channel
