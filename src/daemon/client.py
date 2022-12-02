@@ -224,15 +224,17 @@ class Client:
             self.send_message(IRC_REPLIES.ENDOFNAMES, message=":End of /NAMES list")
 
     def _handle_part(self, message: Message, reason: str = ""):
-        """Handle QUIT command"""
+        """Handle PART command"""
         parameters = message.parameters
         if len(message.parameters) < 1:  # Error case
             self.send_need_more_params("PART")
             return
         elif len(parameters) > 1:  # Recursive case
-            if parameters[0][0] == "#":
+            if parameters[0][0] == "#":  # Check whether the first param is a channel
                 for i in range(len(parameters)):
-                    if parameters[i][0] != "#":
+                    if (
+                        parameters[i][0] != "#"
+                    ):  # Check if reason (non-channel param[s]) exists
                         reason = " ".join(parameters[i:])
                         parameters = parameters[:i]
                         break
