@@ -242,9 +242,8 @@ class Client:
 
     def _handle_lusers(self, message: Message):
         """Handle LUSERS command"""
-        # Check if error checking needed for extra params and stuff.
-        # figure out user name
-        # document why 0 for both
+        # We do not support invisible clients and other servers
+        # joining, thus we set those to 0.
         num_users = len(Client.registered_nicks)
         self.send_message(
             numeric=IRC_REPLIES.LUSERCLIENT,
