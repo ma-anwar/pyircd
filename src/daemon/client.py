@@ -35,6 +35,7 @@ class Client:
             IRC_COMMANDS.QUIT: self._handle_quit,
             IRC_COMMANDS.JOIN: self._handle_join
             # TODO: Implement _handle_part
+            IRC_COMMANDS.LUSERS: self._handle_lusers,
         }
         self.joined_channels = {}  # Key=channel_name, Value=broadcast:callable
 
@@ -238,6 +239,22 @@ class Client:
         if topic != "":
             topic_code = IRC_REPLIES.TOPIC
             self.send_message(topic_code, message=f": {topic}", include_nick=False)
+    def _handle_lusers(self, message: Message):
+        """Handle LUSERS command"""
+        # Check if error checking needed for extra params and stuff.
+        # figure out user name
+        # document why 0 for both
+        num_users = len(self.registered_nicks)
+        self.send_message(
+            numeric=IRC_REPLIES.LUSERCLIENT,
+            message=f":There are {num_users} users and 0 invisible on 0 servers",
+            include_nick=True,
+        )
+        self.send_message(
+            numeric=IRC_REPLIES.LUSERME,
+            message=f":I have {num_users} clients and 0 servers",
+            include_nick=True,
+        )
 
     def send_message(self, numeric: str, message: str, include_nick: bool = True):
         """Write message to the out buffer of this client instance
