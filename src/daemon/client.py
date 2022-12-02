@@ -33,8 +33,8 @@ class Client:
             IRC_COMMANDS.USER: self._handle_user,
             IRC_COMMANDS.NICK: self._handle_nick,
             IRC_COMMANDS.QUIT: self._handle_quit,
-            IRC_COMMANDS.JOIN: self._handle_join
-            # TODO: Implement _handle_part
+            IRC_COMMANDS.JOIN: self._handle_join,
+            IRC_COMMANDS.PART: self._handle_part,
         }
         self.joined_channels = {}  # Key=channel_name, Value=broadcast:callable
 
@@ -157,7 +157,11 @@ class Client:
     def _handle_join(self, message: Message):
         """Handle JOIN command"""
         if len(message.parameters) < 1:  # Error case
-            self.send_message(IRC_ERRORS.NEED_MORE_PARAMS, ":Not enough parameters")
+            self.send_message(
+                IRC_ERRORS.NEED_MORE_PARAMS,
+                "JOIN :Not enough parameters",
+                include_nick=False,
+            )
             return
 
         elif (
@@ -223,6 +227,48 @@ class Client:
             )
             self.send_message(IRC_REPLIES.ENDOFNAMES, message=":End of /NAMES list")
 
+    def _handle_part(self, message: Message):
+        parameters = message.parameters
+        if len(message.parameters) < 1:  # Error case
+            self.send_message(
+                IRC_ERRORS.NEED_MORE_PARAMS,
+                "PART :Not enough parameters",
+                include_nick=False,
+            )
+            return
+        elif len(parameters) > 1:  # Recursive case
+            for param in parameters:
+                message.parameters = [param]
+                self._handle_part(message)
+        else:  # Base case
+            channel_name = parameters[0][0]
+            if channel_name not in Client.channels:
+                self.send_message(
+                    numeric=IRC_ERRORS.NOSUCHCHANNEL,
+                    message=f"{channel_name} :No such channel",
+                    include_nick=False,
+                )
+                return
+            if (
+                channel_name not in self.joined_channels
+                or self.address
+                not in Client.channels[channel_name].get_client_addresses()
+            ):
+                self.send_message(
+                    numeric=IRC_ERRORS.NOTONCHANNEL,
+                    message=f"{channel_name} :You're not on that channel",
+                    include_nick=False,
+                )
+                return
+
+            # Announce departure to channel
+            broadcast = self.joined_channels[channel_name]
+            self.broadcast_departure(broadcast, self._nick, channel_name)
+
+            # Unregister from channel
+            Client.channels[channel_name].unregister(self.address)
+            self.joined_channels.pop(channel_name)
+
     def broadcast_arrival(self, broadcast: callable, channel_name: str):
         """Send JOIN messages announcing that user has arrived"""
         # Send JOIN message to channel
@@ -231,6 +277,13 @@ class Client:
         )
         # Send JOIN message to client
         self.send_message("JOIN", message=f"{channel_name}")
+
+    def broadcast_departure(broadcast: callable, nick: str, channel_name: str):
+        broadcast(
+            numeric="PART",
+            message=f"{nick} is leaving the channel {channel_name}",
+            include_nick=False,
+        )
 
     def send_topic(self, channel_name):
         """Send topic to client"""
