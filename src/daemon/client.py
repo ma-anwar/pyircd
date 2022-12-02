@@ -192,7 +192,9 @@ class Client:
             ):
                 self.send_message(
                     numeric=constants.IRC_ERRORS.USERONCHANNEL,
-                    message=f"{self.channel_name} :is already on channel",
+                    message=f" \
+                        {Client.channels[channel_name.lower()].get_channel_name()} \
+                        :is already on channel",
                     include_nick=True,
                 )
                 return
@@ -222,12 +224,16 @@ class Client:
             self.send_message(IRC_REPLIES.ENDOFNAMES, message=":End of /NAMES list")
 
     def broadcast_arrival(self, broadcast: callable, channel_name: str):
+        """Send JOIN messages announcing that user has arrived"""
         # Send JOIN message to channel
-        broadcast(numeric="JOIN", message=channel_name)
+        broadcast(
+            numeric="JOIN", message=f"{self._nick} {channel_name}", include_nick=False
+        )
         # Send JOIN message to client
-        self.send_message("JOIN", message=channel_name, include_nick=False)
+        self.send_message("JOIN", message=f"{channel_name}")
 
     def send_topic(self, channel_name):
+        """Send topic to client"""
         topic = Client.channels[channel_name.lower()].get_topic()
         if topic != "":
             topic_code = IRC_REPLIES.TOPIC
