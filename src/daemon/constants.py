@@ -14,14 +14,20 @@ class IRC_COMMANDS(str, Enum):
     PONG = "PONG"
     QUIT = "QUIT"
     ERROR = "ERROR"
+    JOIN = "JOIN"
 
 
 @unique
 class IRC_ERRORS(str, Enum):
+    NOSUCHCHANNEL = "403"
     NO_NICKNAME_GIVEN = "431"
     NICKNAME_IN_USE = "432"
-    ALREADY_REGISTERED = "462"
+    NOTONCHANNEL = "442"
     NEED_MORE_PARAMS = "461"
+    ALREADY_REGISTERED = "462"
+    CHANNELISFULL = "471"
+    BADCHANMASK = "476"
+    USERONCHANNEL = "443"
 
 
 # https://modern.ircdocs.horse/#numerics
@@ -31,6 +37,10 @@ class IRC_REPLIES(str, Enum):
     YOURHOST = "002"
     CREATED = "003"
     MYINFO = "004"
+    NOTOPIC = "331"
+    TOPIC = "332"
+    NAMREPLY = "353"
+    ENDOFNAMES = "366"
 
 
 # https://modern.ircdocs.horse/#message-format
@@ -97,4 +107,12 @@ VALID_ALPHA_COMMANDS = [
     "USERHOST",
     "WALLOPS",
 ]
+
 MESSAGE_PREFIX = f":{config.SERVER_NAME} "
+
+# https://modern.ircdocs.horse/#channels
+FORBIDDEN_CHANNELNAME_CHARS = [
+    " ",
+    ",",
+    bytes.fromhex("00000007").decode("utf-8"),  # The ^G character (0x07)
+]
