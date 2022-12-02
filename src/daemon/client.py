@@ -245,7 +245,7 @@ class Client:
         # Check if error checking needed for extra params and stuff.
         # figure out user name
         # document why 0 for both
-        num_users = len(self.registered_nicks)
+        num_users = len(Client.registered_nicks)
         self.send_message(
             numeric=IRC_REPLIES.LUSERCLIENT,
             message=f":There are {num_users} users and 0 invisible on 0 servers",
