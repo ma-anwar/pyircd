@@ -33,7 +33,7 @@ class Client:
             IRC_COMMANDS.USER: self._handle_user,
             IRC_COMMANDS.NICK: self._handle_nick,
             IRC_COMMANDS.QUIT: self._handle_quit,
-            IRC_COMMANDS.JOIN: self._handle_join
+            IRC_COMMANDS.JOIN: self._handle_join,
             # TODO: Implement _handle_part
             IRC_COMMANDS.LUSERS: self._handle_lusers,
         }
@@ -239,6 +239,7 @@ class Client:
         if topic != "":
             topic_code = IRC_REPLIES.TOPIC
             self.send_message(topic_code, message=f": {topic}", include_nick=False)
+
     def _handle_lusers(self, message: Message):
         """Handle LUSERS command"""
         # Check if error checking needed for extra params and stuff.
