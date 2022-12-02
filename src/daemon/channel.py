@@ -10,8 +10,7 @@ class Channel:
         # <Address> = ("client_address", "client_port")
 
     def register(self, address: tuple, send_msg: callable, nickname: str):
-        """Called as an instance method
-        Registers a client and returns the following:
+        """Registers a client and returns the following:
             - broadcast method
             - channel topic
             - topic reply code
@@ -31,7 +30,7 @@ class Channel:
         return broadcast
 
     def unregister(self, address: tuple):
-        """Instance method for unregistering a client from the channel"""
+        """Unregister a client from the channel"""
         if address in self._clients:
             self._clients.pop(address)
             self._client_nicks.pop(address)
@@ -49,6 +48,7 @@ class Channel:
 
     # https://modern.ircdocs.horse/#topic-message
     def change_topic(self, new_topic):
+        """Change topic of a channel"""
         self._channel_topic = new_topic
         if new_topic == "":
             reply_code = constants.IRC_REPLIES.NOTOPIC
@@ -63,13 +63,17 @@ class Channel:
             )
 
     def get_members(self):
+        """Get members in a channel"""
         return [x for x in self._client_nicks.values()]
 
     def get_topic(self):
+        """Get topic of a channel"""
         return self._channel_topic
 
     def get_client_addresses(self):
+        """Get client address in channel"""
         return [x for x in self._clients.keys()]
 
     def get_channel_name(self):
+        """Get name of channel"""
         return self._channel_name

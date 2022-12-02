@@ -15,16 +15,16 @@ class Parser:
 
     def __init__(self, dispatch: callable):
         """Save the dispatch function to send messages to event_bus"""
-        self.logger = logging.getLogger("Parser")
+        self._logger = logging.getLogger("Parser")
         self._dispatch = dispatch
 
     def _handle_message(self, message: Message):
         """Handle Message and dispatch it to EventBus"""
-        self.logger.debug(message)
+        self._logger.debug(message)
         if message.action not in constants.ACCEPTED_ACTIONS:
             return
         parsed_message = self._parse_message(message)
-        self.logger.debug(parsed_message)
+        self._logger.debug(parsed_message)
         if parsed_message is not None:
             self._dispatch(parsed_message)
 
@@ -60,8 +60,8 @@ class Parser:
         # Decode message
         try:
             message_str = message.message.decode("utf-8")
-        except:
-            print("Could not decode message from utf-8 encoding!")
+        except UnicodeDecodeError:
+            self._logger.debug("Could not decode message from utf-8 encoding!")
             return
 
         # Remove EOL delimiter
