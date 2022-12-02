@@ -242,7 +242,7 @@ class Client:
                 self._handle_part(message)
         else:  # Base case
             channel_name = parameters[0][0]
-            if channel_name not in Client.channels:
+            if channel_name.lower() not in Client.channels:
                 self.send_message(
                     numeric=IRC_ERRORS.NOSUCHCHANNEL,
                     message=f"{channel_name} :No such channel",
@@ -250,9 +250,9 @@ class Client:
                 )
                 return
             if (
-                channel_name not in self.joined_channels
+                channel_name.lower() not in self.joined_channels
                 or self.address
-                not in Client.channels[channel_name].get_client_addresses()
+                not in Client.channels[channel_name.lower()].get_client_addresses()
             ):
                 self.send_message(
                     numeric=IRC_ERRORS.NOTONCHANNEL,
@@ -262,16 +262,16 @@ class Client:
                 return
 
             # Announce departure to channel
-            broadcast = self.joined_channels[channel_name]
+            broadcast = self.joined_channels[channel_name.lower()]
             self.broadcast_departure(broadcast, self._nick, channel_name)
 
             # Unregister from channel
-            Client.channels[channel_name].unregister(self.address)
-            self.joined_channels.pop(channel_name)
+            Client.channels[channel_name.lower()].unregister(self.address)
+            self.joined_channels.pop(channel_name.lower())
 
             # Delete channel if it is empty
-            if not len(Client.channels[channel_name].get_client_addresses()):
-                Client.channels.pop(channel_name)
+            if not len(Client.channels[channel_name.lower()].get_client_addresses()):
+                Client.channels.pop(channel_name.lower())
 
     def broadcast_arrival(self, broadcast: callable, channel_name: str):
         """Send JOIN messages announcing that user has arrived"""
@@ -280,7 +280,7 @@ class Client:
             numeric="JOIN", message=f"{self._nick} {channel_name}", include_nick=False
         )
         # Send JOIN message to client
-        self.send_message("JOIN", message=f"{channel_name}")
+        self.send_message("JOIN", message=f"{channel_name}", include_nick=False)
 
     def broadcast_departure(broadcast: callable, nick: str, channel_name: str):
         broadcast(
