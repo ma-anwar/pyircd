@@ -15,6 +15,7 @@ class IRC_COMMANDS(str, Enum):
     QUIT = "QUIT"
     ERROR = "ERROR"
     JOIN = "JOIN"
+    PART = "PART"
 
 
 @unique
