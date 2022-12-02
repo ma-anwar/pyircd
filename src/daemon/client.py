@@ -37,6 +37,7 @@ class Client:
             IRC_COMMANDS.PART: self._handle_part,
             IRC_COMMANDS.LUSERS: self._handle_lusers,
             IRC_COMMANDS.PART: self._handle_privmsg,
+            IRC_COMMANDS.PRIVMSG: self._handle_privmsg,
         }
         self.joined_channels = {}  # Key=channel_name, Value=broadcast:callable
 
