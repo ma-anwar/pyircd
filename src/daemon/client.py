@@ -1,6 +1,7 @@
 """This module represents a client and defines client message handlers"""
 import logging
 from selectors import SelectorKey
+from typing import List
 
 import channel
 import config
@@ -16,6 +17,7 @@ class Client:
     """
 
     clients = {}  # Key: Address (tuple), Value: Client
+
     channels = {}  # Key: channel_name, Value:Channel()
 
     def __init__(self, address: tuple, key: SelectorKey):
@@ -38,18 +40,19 @@ class Client:
             IRC_COMMANDS.JOIN: self._handle_join,
             IRC_COMMANDS.PART: self._handle_part,
             IRC_COMMANDS.LUSERS: self._handle_lusers,
-            IRC_COMMANDS.PART: self._handle_privmsg,
             IRC_COMMANDS.PRIVMSG: self._handle_privmsg,
         }
 
     @classmethod
-    def get_registered_nicks(cls):
+    def get_registered_nicks(cls) -> List[str]:
+        """Return list of registered nicks"""
         return [
             client.nick for client in Client.clients.values() if client.is_registered
         ]
 
     @classmethod
-    def get_client(cls, target_nick):
+    def get_client(cls, target_nick: str):
+        """Return client instance if exists or else None"""
         target = [
             client for client in Client.clients.values() if client.nick == target_nick
         ]
@@ -61,7 +64,7 @@ class Client:
         return self._is_registered
 
     @is_registered.setter
-    def is_registered(self, is_registered):
+    def is_registered(self, is_registered: bool):
         """Set value of is_registered, call success handler if is_registered"""
         self._is_registered = is_registered
         if is_registered:
@@ -90,7 +93,7 @@ class Client:
             handler(message)
 
     def _handle_registration_flow(self, message: Message):
-        """Handle registration state and ultimately send reply on success WIP"""
+        """Handle registration state and send reply on success"""
         if message.command == IRC_COMMANDS.NICK:
             self._handle_nick(message)
 
@@ -299,8 +302,9 @@ class Client:
         )
 
     def _handle_privmsg(self, message: Message, payload: str = ""):
+        """Handle PRIVMSG command"""
         if len(message.parameters) < 2 and payload == "":  # Error case
-            self.send_need_more_params(IRC_COMMANDS.PRIVMSG, include_nick=False)
+            self.send_need_more_params(IRC_COMMANDS.PRIVMSG)
             return
         elif (
             len(message.parameters) > 1
@@ -330,10 +334,10 @@ class Client:
 
             if target[0] == "#":  # Target is a channel
                 if target.lower() not in Client.channels:
-                    self.send_no_such_channel(target, include_nick=False)
+                    self.send_no_such_channel(target)
                     return
                 if target.lower() not in self.joined_channels:
-                    self.send_not_on_channel(target, include_nick=False)
+                    self.send_not_on_channel(target)
                     return
                 # Broadcast to channel
                 broadcast = self.joined_channels[target.lower()]
@@ -347,12 +351,13 @@ class Client:
             else:  # Target is a single client
                 target_client = Client.get_client(target)
                 if not target_client:
-                    self.send_no_such_nick(target, include_nick=False)
+                    self.send_no_such_nick(target)
                     return
                 target_client.send_message(
                     numeric=IRC_COMMANDS.PRIVMSG,
                     message=message_to_send,
                     include_nick=False,
+                    source=self.nick,
                 )
 
     def broadcast_arrival(self, broadcast: callable, channel_name: str):
@@ -423,7 +428,11 @@ class Client:
         )
 
     def send_message(
-        self, numeric: str, message: str, include_nick: bool = True, source: str = ""
+        self,
+        numeric: str,
+        message: str,
+        include_nick: bool = True,
+        source: str = f"{config.SERVER_NAME}",
     ):
         """Write message to the out buffer of this client instance
 
@@ -431,9 +440,10 @@ class Client:
         https://modern.ircdocs.horse/#numeric-replies
         numeric: 3 digit code per docs
         message: utf-8 string, optionally terminated with \r\n
+        include_nick: Whether to set the target as the current client
+        source: Value to use as source of message
         """
-        message_source = f":{source}" if source else constants.SERVER_SOURCE
-
+        message_source = f":{source}"
         if include_nick:
             constructed_messsage = f"{message_source} {numeric} {self.nick} {message}"
         else:

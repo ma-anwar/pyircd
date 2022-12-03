@@ -57,6 +57,7 @@ def main() -> None:
     utils.print_logo()
 
     config.init(name)
+    logging.debug(name)
 
     message_bus = MessageBus()
     parser = Parser(message_bus.dispatch)
