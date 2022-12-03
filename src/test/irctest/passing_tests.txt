@@ -1,4 +1,3 @@
-irctest/server_tests/lusers.py::BasicLusersTestCase::testLusers
 irctest/server_tests/connection_registration.py::PasswordedConnectionRegistrationTestCase::testPassBeforeNickuser
 irctest/server_tests/connection_registration.py::ConnectionRegistrationTestCase::testEmptyRealname
 irctest/server_tests/connection_registration.py::ConnectionRegistrationTestCase::testNickCollision
@@ -14,3 +13,6 @@ irctest/server_tests/part.py::PartTestCase::testPartNotInNonEmptyChannel
 irctest/server_tests/part.py::PartTestCase::testBasicPart
 irctest/server_tests/part.py::PartTestCase::testBasicPartRfc2812
 irctest/server_tests/part.py::PartTestCase::testPartMessage
+irctest/server_tests/lusers.py::BasicLusersTestCase::testLusers
+irctest/server_tests/messages.py::PrivmsgTestCase::testPrivmsg
+irctest/server_tests/messages.py::PrivmsgTestCase::testPrivmsgNonexistentChannel
