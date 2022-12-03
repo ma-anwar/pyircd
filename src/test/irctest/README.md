@@ -8,6 +8,10 @@ To get started, copy `pyircd_controller.py` to `irctest/irctest/controllers`. Th
 
 Furthermore, copy `pyproject.toml` to the `irctest`. Finally run `poetry install` in `irctest` to get the environment setup.
 
+#### Additional Tests
+Due to a lack of tests for certain core IRC functionality. We wrote some additional tests. These can be found in `additional_tests.py` and must be copied into `passing_tests.txt` after adding them into `irctest`.
+Instructions for adding the tests into `irctest` can be found in `additional_tests.py`.
+
 ### Running Tests
 
 To run the tests, first set an environment variable pointing to the root directory of `pyircd`, for example, `export PYIRCD_DIR=/home/me/pyircd/`.

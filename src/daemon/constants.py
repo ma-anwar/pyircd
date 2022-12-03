@@ -1,8 +1,6 @@
 """This module holds constants used throughout the daemon"""
 from enum import Enum, unique
 
-import config
-
 
 # Use str as value in enums: https://docs.python.org/3/library/enum.html#notes
 @unique
@@ -17,10 +15,12 @@ class IRC_COMMANDS(str, Enum):
     JOIN = "JOIN"
     PART = "PART"
     LUSERS = "LUSERS"
+    PRIVMSG = "PRIVMSG"
 
 
 @unique
 class IRC_ERRORS(str, Enum):
+    NOSUCHNICK = "401"
     NOSUCHCHANNEL = "403"
     NO_NICKNAME_GIVEN = "431"
     NICKNAME_IN_USE = "432"
@@ -112,8 +112,6 @@ VALID_ALPHA_COMMANDS = [
     "WALLOPS",
     "LUSERS",
 ]
-
-MESSAGE_PREFIX = f":{config.SERVER_NAME} "
 
 # https://modern.ircdocs.horse/#channels
 FORBIDDEN_CHANNELNAME_CHARS = [
