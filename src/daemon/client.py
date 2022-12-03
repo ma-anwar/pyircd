@@ -1,7 +1,6 @@
 """This module represents a client and defines client message handlers"""
 import logging
 from selectors import SelectorKey
-from typing import Callable
 
 import channel
 import config
@@ -16,10 +15,11 @@ class Client:
     The actual Channel.name is not stored in lowercase
     """
 
-    registered_nicks = {}  # Key: nick, Value = send_message_callback
-    channels = {}  # Key: channel_name, Value=Channel()
+    clients = {}  # Key: Address (tuple), Value: Client
+    registered_nicks = {}  # Key: nick, Value: send_message_callback
+    channels = {}  # Key: channel_name, Value:Channel()
 
-    def __init__(self, address: tuple, key: SelectorKey, unregister_callback: Callable):
+    def __init__(self, address: tuple, key: SelectorKey):
         self._logger = logging.getLogger(__name__)
         self._is_registered = False
         self._nick = ""
@@ -27,7 +27,10 @@ class Client:
         self._username = ""
         self._key = key
         self.address = address
-        self._unregister_callback = unregister_callback
+        self.joined_channels = {}  # Key=channel_name, Value=broadcast:callable
+
+        Client.clients[self.address] = self
+
         self._handlers = {
             IRC_COMMANDS.PING: self._handle_ping,
             IRC_COMMANDS.USER: self._handle_user,
@@ -39,7 +42,6 @@ class Client:
             IRC_COMMANDS.PART: self._handle_privmsg,
             IRC_COMMANDS.PRIVMSG: self._handle_privmsg,
         }
-        self.joined_channels = {}  # Key=channel_name, Value=broadcast:callable
 
     @property
     def is_registered(self):
@@ -154,8 +156,8 @@ class Client:
 
         # Signal to Server to unregister after sending QUIT
         self._key.data.unregister_socket = True
-        # Unregister from message_bus
-        self._unregister_callback()
+
+        Client.clients.pop(self.address)
 
     def _handle_join(self, message: Message):
         """Handle JOIN command"""
