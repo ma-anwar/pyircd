@@ -16,13 +16,12 @@ class Client:
     """
 
     clients = {}  # Key: Address (tuple), Value: Client
-    registered_nicks = {}  # Key: nick, Value: send_message_callback
     channels = {}  # Key: channel_name, Value:Channel()
 
     def __init__(self, address: tuple, key: SelectorKey):
         self._logger = logging.getLogger(__name__)
         self._is_registered = False
-        self._nick = ""
+        self.nick = ""
         self._realname = ""
         self._username = ""
         self._key = key
@@ -43,6 +42,19 @@ class Client:
             IRC_COMMANDS.PRIVMSG: self._handle_privmsg,
         }
 
+    @classmethod
+    def get_registered_nicks(cls):
+        return [
+            client.nick for client in Client.clients.values() if client.is_registered
+        ]
+
+    @classmethod
+    def get_client(cls, target_nick):
+        target = [
+            client for client in Client.clients.values() if client.nick == target_nick
+        ]
+        return target[0] if len(target) else None
+
     @property
     def is_registered(self):
         """Get value of _is_registered"""
@@ -54,7 +66,6 @@ class Client:
         self._is_registered = is_registered
         if is_registered:
             self._send_registration_success()
-            Client.registered_nicks[self._nick] = self.send_message
 
     def _send_registration_success(self):
         """Complete the registration flow as per IRC spec
@@ -87,7 +98,7 @@ class Client:
             self._handle_user(message)
 
         # user_name implies realname is present
-        if self._username and self._nick:
+        if self._username and self.nick:
             self.is_registered = True
 
     def _handle_nick(self, message: Message):
@@ -101,14 +112,14 @@ class Client:
             self.send_message(IRC_ERRORS.NO_NICKNAME_GIVEN, ":No nickname given")
             return
 
-        if candidate_nick in Client.registered_nicks:
+        if candidate_nick in Client.get_registered_nicks():
             self.send_message(
                 IRC_ERRORS.NICKNAME_IN_USE,
                 f"{candidate_nick}:Nickname is already in use",
             )
             return
 
-        self._nick = candidate_nick
+        self.nick = candidate_nick
 
     def _handle_user(self, message: Message):
         """Handle USER command"""
@@ -206,7 +217,7 @@ class Client:
 
             # Register and get broadcast function from channel
             broadcast = Client.channels[channel_name.lower()].register(
-                self.address, self.send_message, self._nick
+                self.address, self.send_message, self.nick
             )
 
             # Add channel to joined_channels with broadcast function as value
@@ -261,7 +272,7 @@ class Client:
 
             # Announce departure to channel
             broadcast = self.joined_channels[channel_name.lower()]
-            self.broadcast_departure(broadcast, self._nick, channel_name, reason)
+            self.broadcast_departure(broadcast, self.nick, channel_name, reason)
 
             # Unregister from channel
             Client.channels[channel_name.lower()].unregister(self.address)
@@ -271,11 +282,11 @@ class Client:
             if not len(Client.channels[channel_name.lower()].get_client_addresses()):
                 Client.channels.pop(channel_name.lower())
 
-    def _handle_lusers(self, message: Message):
+    def _handle_lusers(self, _: Message):
         """Handle LUSERS command"""
         # We do not support invisible clients and other servers
         # joining, thus we set those to 0.
-        num_users = len(Client.registered_nicks)
+        num_users = len(Client.get_registered_nicks())
         self.send_message(
             numeric=IRC_REPLIES.LUSERCLIENT,
             message=f":There are {num_users} users and 0 invisible on 0 servers",
@@ -286,6 +297,7 @@ class Client:
             message=f":I have {num_users} clients and 0 servers",
             include_nick=True,
         )
+
     def _handle_privmsg(self, message: Message, payload: str = ""):
         if len(message.parameters) < 2 and payload == "":  # Error case
             self.send_need_more_params(IRC_COMMANDS.PRIVMSG, include_nick=False)
@@ -329,11 +341,11 @@ class Client:
                 self.send_message(numeric=IRC_COMMANDS.PRIVMSG, message=payload)
                 return
             else:  # Target is a single client
-                if target not in Client.registered_nicks:
+                target_client = Client.get_client(target)
+                if not target_client:
                     self.send_no_such_nick(target, include_nick=False)
                     return
-                send_msg = Client.registered_nicks[target]
-                send_msg(
+                target_client.send_msg(
                     numeric=IRC_COMMANDS.PRIVMSG, message=payload, include_nick=True
                 )
 
@@ -341,7 +353,7 @@ class Client:
         """Send JOIN messages announcing that user has arrived"""
         # Send JOIN message to channel
         broadcast(
-            numeric="JOIN", message=f"{self._nick} {channel_name}", include_nick=False
+            numeric="JOIN", message=f"{self.nick} {channel_name}", include_nick=False
         )
         # Send JOIN message to client
         self.send_message("JOIN", message=f"{channel_name}", include_nick=False)
@@ -371,7 +383,7 @@ class Client:
         if topic != "":
             topic_code = IRC_REPLIES.TOPIC
             self.send_message(topic_code, message=f": {topic}", include_nick=False)
-        
+
     def send_no_such_channel(self, channel_name: str, include_nick: bool = True):
         """Send NOSUCHCHANNEL error to client"""
         self.send_message(
@@ -414,7 +426,7 @@ class Client:
         """
         if include_nick:
             constructed_messsage = (
-                f"{constants.MESSAGE_PREFIX} {numeric} {self._nick} {message}"
+                f"{constants.MESSAGE_PREFIX} {numeric} {self.nick} {message}"
             )
         else:
             constructed_messsage = f"{constants.MESSAGE_PREFIX} {numeric} {message}"
