@@ -326,7 +326,8 @@ class Client:
 
         else:  # Base case (1 target && non-empty payload)
             target = message.parameters[0]
-            payload = ":" + payload
+            message_to_send = f"{target} :{payload}"
+
             if target[0] == "#":  # Target is a channel
                 if target.lower() not in Client.channels:
                     self.send_no_such_channel(target, include_nick=False)
@@ -336,17 +337,22 @@ class Client:
                     return
                 # Broadcast to channel
                 broadcast = self.joined_channels[target.lower()]
-                broadcast(numeric=IRC_COMMANDS.PRIVMSG, message=payload)
-                # Send to client
-                self.send_message(numeric=IRC_COMMANDS.PRIVMSG, message=payload)
+                broadcast(
+                    numeric=IRC_COMMANDS.PRIVMSG,
+                    message=message_to_send,
+                    include_nick=False,
+                    source=self.nick,
+                )
                 return
             else:  # Target is a single client
                 target_client = Client.get_client(target)
                 if not target_client:
                     self.send_no_such_nick(target, include_nick=False)
                     return
-                target_client.send_msg(
-                    numeric=IRC_COMMANDS.PRIVMSG, message=payload, include_nick=True
+                target_client.send_message(
+                    numeric=IRC_COMMANDS.PRIVMSG,
+                    message=message_to_send,
+                    include_nick=False,
                 )
 
     def broadcast_arrival(self, broadcast: callable, channel_name: str):
@@ -416,7 +422,9 @@ class Client:
             include_nick=include_nick,
         )
 
-    def send_message(self, numeric: str, message: str, include_nick: bool = True):
+    def send_message(
+        self, numeric: str, message: str, include_nick: bool = True, source: str = ""
+    ):
         """Write message to the out buffer of this client instance
 
         Constructs message according to spec below
@@ -424,12 +432,12 @@ class Client:
         numeric: 3 digit code per docs
         message: utf-8 string, optionally terminated with \r\n
         """
+        message_source = f":{source}" if source else constants.SERVER_SOURCE
+
         if include_nick:
-            constructed_messsage = (
-                f"{constants.MESSAGE_PREFIX} {numeric} {self.nick} {message}"
-            )
+            constructed_messsage = f"{message_source} {numeric} {self.nick} {message}"
         else:
-            constructed_messsage = f"{constants.MESSAGE_PREFIX} {numeric} {message}"
+            constructed_messsage = f"{message_source} {numeric} {message}"
 
         message_as_bytes = constructed_messsage.encode()
 

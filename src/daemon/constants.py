@@ -115,7 +115,7 @@ VALID_ALPHA_COMMANDS = [
     "LUSERS",
 ]
 
-MESSAGE_PREFIX = f":{config.SERVER_NAME} "
+SERVER_SOURCE = f":{config.SERVER_NAME}"
 
 # https://modern.ircdocs.horse/#channels
 FORBIDDEN_CHANNELNAME_CHARS = [
