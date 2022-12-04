@@ -31,7 +31,7 @@ class IRC_ERRORS(str, Enum):
     CHANNELISFULL = "471"
     BADCHANMASK = "476"
     USERONCHANNEL = "443"
-    NOSUCHCSERVER = "402"
+    NOSUCHSERVER = "402"
 
 
 # https://modern.ircdocs.horse/#numerics

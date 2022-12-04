@@ -166,7 +166,6 @@ class Client:
             return
 
         token = message.parameters[0]
-        self._logger.debug(f"Server name is {config.SERVER_NAME}")
         self.send_message(
             IRC_COMMANDS.PONG, f"{config.SERVER_NAME} {token}", include_nick=False
         )
@@ -183,7 +182,6 @@ class Client:
         self.send_message(IRC_COMMANDS.ERROR, f"QUIT: {reason}")
 
         Client.clients.pop(self.address)
-        self._logger.debug(Client.clients)
 
     def _handle_join(self, message: Message):
         """Handle JOIN command"""
@@ -377,7 +375,7 @@ class Client:
         if len(message.parameters) and message.parameters[0] != config.SERVER_NAME:
             target = message.parameters[0]
             self.send_message(
-                IRC_ERRORS.NOSUCHCSERVER, f"{target}:No such server is known"
+                IRC_ERRORS.NOSUCHSERVER, f"{target} :No such server is known"
             )
 
     def _send_motd(self):
