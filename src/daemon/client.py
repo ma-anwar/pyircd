@@ -373,6 +373,7 @@ class Client:
                 )
 
     def _handle_motd(self, message: Message):
+        """Handle MOTD command"""
         if len(message.parameters) and message.parameters[0] != config.SERVER_NAME:
             target = message.parameters[0]
             self.send_message(
@@ -380,6 +381,7 @@ class Client:
             )
 
     def _send_motd(self):
+        """Send MOTD message"""
         self.send_message(
             IRC_REPLIES.MOTDSTART, f":- {config.SERVER_NAME} Message of the day - "
         )
