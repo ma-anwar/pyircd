@@ -3,7 +3,8 @@
 https://docs.python.org/3/faq/programming.html#how-do-i-share-global-variables-across-modules
 """
 
-SERVER_NAME = ""
+
+SERVER_NAME = "pyircd"
 
 
 def init(name: str):
