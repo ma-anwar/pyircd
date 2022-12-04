@@ -68,6 +68,7 @@ class Server:
         try:
             received_data = socket.recv(constants.RECEIVE_LENGTH)
         except ConnectionResetError:
+            self._dispatch_on_disconnect(key)
             return
 
         self._logger.debug(
@@ -83,6 +84,7 @@ class Server:
         # Empty receipt means we terminate
         else:
             self._logger.info(f"Closing connection to {address}")
+            self._dispatch_on_disconnect(key)
             self._selector.unregister(socket)
             socket.close()
             # TODO: Notify downstream
@@ -102,6 +104,17 @@ class Server:
 
             message = Message(address, "PARSE", irc_message, key)
             self._dispatch(message)
+
+    def _dispatch_on_disconnect(self, key: SelectorKey):
+        address = key.data.address
+        message = Message(
+            address,
+            constants.SERVER_EVENTS.DISCONNECT,
+            b"",
+            key,
+            command=constants.SERVER_EVENTS.DISCONNECT,
+        )
+        self._dispatch(message)
 
     def _service_existing_connection(self, key: SelectorKey, event_mask: int):
         """Handle read or write event on existing connection"""
@@ -152,6 +165,7 @@ class Server:
                     message = message[num_bytes_sent:]
                 except ConnectionError as e:
                     self._logger.debug(f"Connection error {e}, deregistering socket")
+                    self._dispatch_on_disconnect(key)
                     self._selector.unregister(socket)
                     socket.close()
                     # TODO: Notify downstream

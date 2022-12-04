@@ -6,7 +6,8 @@ from typing import List
 import channel
 import config
 import constants
-from constants import IRC_COMMANDS, IRC_ERRORS, IRC_REPLIES
+import utils
+from constants import IRC_COMMANDS, IRC_ERRORS, IRC_REPLIES, SERVER_EVENTS
 from message import Message
 
 
@@ -41,6 +42,7 @@ class Client:
             IRC_COMMANDS.PART: self._handle_part,
             IRC_COMMANDS.LUSERS: self._handle_lusers,
             IRC_COMMANDS.PRIVMSG: self._handle_privmsg,
+            IRC_COMMANDS.MOTD: self._handle_motd,
         }
 
     @classmethod
@@ -79,10 +81,15 @@ class Client:
         self.send_message(IRC_REPLIES.YOURHOST, ":This daemon is being developed.")
         self.send_message(IRC_REPLIES.CREATED, ":This server was started recently")
         self.send_message(IRC_REPLIES.MYINFO, f":{config.SERVER_NAME} More info sooon!")
+        self._send_motd()
 
     def handle_message(self, message: Message):
-        """Handle message by invoking registration flow"""
+        """Invoke appropriate handler for message"""
         self._logger.debug(f"{self.address} - {message}")
+
+        # Any client can disconnect, whether registered or unregistered
+        if message.command == SERVER_EVENTS.DISCONNECT:
+            self._handle_disconnect(message)
 
         if not self.is_registered:
             self._handle_registration_flow(message)
@@ -159,6 +166,7 @@ class Client:
             return
 
         token = message.parameters[0]
+        self._logger.debug(f"Server name is {config.SERVER_NAME}")
         self.send_message(
             IRC_COMMANDS.PONG, f"{config.SERVER_NAME} {token}", include_nick=False
         )
@@ -166,12 +174,16 @@ class Client:
     def _handle_quit(self, message: Message):
         """Handle QUIT command"""
         reason = message.parameters[0] if message.parameters else ""
-        self.send_message(IRC_COMMANDS.ERROR, f"QUIT: {reason}")
+
+        self._leave_all_channels(True)
 
         # Signal to Server to unregister after sending QUIT
         self._key.data.unregister_socket = True
 
+        self.send_message(IRC_COMMANDS.ERROR, f"QUIT: {reason}")
+
         Client.clients.pop(self.address)
+        self._logger.debug(Client.clients)
 
     def _handle_join(self, message: Message):
         """Handle JOIN command"""
@@ -360,33 +372,82 @@ class Client:
                     source=self.nick,
                 )
 
+    def _handle_motd(self, message: Message):
+        if len(message.parameters) and message.parameters[0] != config.SERVER_NAME:
+            target = message.parameters[0]
+            self.send_message(
+                IRC_ERRORS.NOSUCHCSERVER, f"{target}:No such server is known"
+            )
+
+    def _send_motd(self):
+        self.send_message(
+            IRC_REPLIES.MOTDSTART, f":- {config.SERVER_NAME} Message of the day - "
+        )
+        for line in utils.motd.split("\n"):
+            self.send_message(IRC_REPLIES.MOTD, f":{line}")
+        self.send_message(IRC_REPLIES.ENDOFMOTD, ":End of MOTD")
+
+    def _handle_disconnect(self, _: Message):
+        """Handle client disconnect"""
+        self._leave_all_channels(False)
+        Client.clients.pop(self.address)
+
+    def _leave_all_channels(self, send_to_self: bool):
+        """leave all channels that client is a part of
+
+        send_to_self: Set to true if PART messages should be echoed
+            to client that is leaving
+        """
+        for channel_name, broadcast in self.joined_channels.items():
+            original_channel_name = Client.channels[channel].get_channel_name()
+            self.broadcast_departure(
+                broadcast,
+                self.nick,
+                original_channel_name,
+                "Disconnected",
+                send_to_self,
+            )
+            Client.channels[channel_name].unregister(self.address)
+
     def broadcast_arrival(self, broadcast: callable, channel_name: str):
         """Send JOIN messages announcing that user has arrived"""
         # Send JOIN message to channel
         broadcast(
-            numeric="JOIN", message=f"{self.nick} {channel_name}", include_nick=False
+            numeric=IRC_COMMANDS.JOIN,
+            message=f"{self.nick} {channel_name}",
+            include_nick=False,
         )
         # Send JOIN message to client
-        self.send_message("JOIN", message=f"{channel_name}", include_nick=False)
+        self.send_message(
+            IRC_COMMANDS.JOIN, message=f"{channel_name}", include_nick=False
+        )
 
     def broadcast_departure(
-        self, broadcast: callable, nick: str, channel_name: str, reason
+        self,
+        broadcast: callable,
+        nick: str,
+        channel_name: str,
+        reason: str,
+        send_to_self: bool = True,
     ):
         """Send PART messages announcing that user is leaving"""
         if reason != "":
             reason = ":" + reason
         # Send PART message to channel
         broadcast(
-            numeric="PART",
+            numeric=IRC_COMMANDS.PART,
             # https://modern.ircdocs.horse/#part-message
             # message=f"{nick} is leaving the channel {channel_name} {reason}",
             message=f"{channel_name} {reason}",  # This version passes tests
             include_nick=False,
         )
-        # Send PART message to client
-        self.send_message(
-            "PART", message=f"{channel_name} {reason}", include_nick=False
-        )
+        if send_to_self:
+            # Send PART message to client
+            self.send_message(
+                IRC_COMMANDS.PART,
+                message=f"{channel_name} {reason}",
+                include_nick=False,
+            )
 
     def send_topic(self, channel_name):
         """Send topic to client"""
