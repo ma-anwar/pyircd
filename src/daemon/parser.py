@@ -21,8 +21,12 @@ class Parser:
     def _handle_message(self, message: Message):
         """Handle Message and dispatch it to EventBus"""
         self._logger.debug(message)
+
+        # Forward messages that are not to be parsed
         if message.action not in constants.ACCEPTED_ACTIONS:
+            self._dispatch(message)
             return
+
         parsed_message = self._parse_message(message)
         self._logger.debug(parsed_message)
         if parsed_message is not None:

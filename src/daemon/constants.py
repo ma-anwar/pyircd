@@ -16,6 +16,7 @@ class IRC_COMMANDS(str, Enum):
     PART = "PART"
     LUSERS = "LUSERS"
     PRIVMSG = "PRIVMSG"
+    MOTD = "MOTD"
 
 
 @unique
@@ -30,6 +31,7 @@ class IRC_ERRORS(str, Enum):
     CHANNELISFULL = "471"
     BADCHANMASK = "476"
     USERONCHANNEL = "443"
+    NOSUCHSERVER = "402"
 
 
 # https://modern.ircdocs.horse/#numerics
@@ -45,6 +47,14 @@ class IRC_REPLIES(str, Enum):
     ENDOFNAMES = "366"
     LUSERCLIENT = "251"
     LUSERME = "255"
+    MOTD = "372"
+    MOTDSTART = "375"
+    ENDOFMOTD = "376"
+
+
+@unique
+class SERVER_EVENTS(str, Enum):
+    DISCONNECT = "DISCONNECT"
 
 
 # https://modern.ircdocs.horse/#message-format
