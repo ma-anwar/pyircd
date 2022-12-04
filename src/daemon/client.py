@@ -78,9 +78,12 @@ class Client:
         https://modern.ircdocs.horse/#connection-registration
         """
         self.send_message(IRC_REPLIES.WELCOME, f":Welcome to {config.SERVER_NAME}")
-        self.send_message(IRC_REPLIES.YOURHOST, ":This daemon is being developed.")
+        self.send_message(
+            IRC_REPLIES.YOURHOST,
+            ":This daemon was developed by Efkan, Mohammad and Vigaash.",
+        )
         self.send_message(IRC_REPLIES.CREATED, ":This server was started recently")
-        self.send_message(IRC_REPLIES.MYINFO, f":{config.SERVER_NAME} More info sooon!")
+        self.send_message(IRC_REPLIES.MYINFO, f":{config.SERVER_NAME} Version 1")
         self._send_motd()
 
     def handle_message(self, message: Message):
@@ -113,8 +116,6 @@ class Client:
 
     def _handle_nick(self, message: Message):
         """Handle NICK command"""
-        if self._is_registered:
-            return
 
         candidate_nick = message.parameters[0] if len(message.parameters) > 0 else None
 
@@ -129,7 +130,13 @@ class Client:
             )
             return
 
+        old_nick = self.nick
         self.nick = candidate_nick
+
+        if self._is_registered:
+            self.send_message(
+                IRC_COMMANDS.NICK, self.nick, include_nick=False, source=old_nick
+            )
 
     def _handle_user(self, message: Message):
         """Handle USER command"""
@@ -382,7 +389,7 @@ class Client:
     def _send_motd(self):
         """Send MOTD message"""
         self.send_message(
-            IRC_REPLIES.MOTDSTART, f":- {config.SERVER_NAME} You have now entered... "
+            IRC_REPLIES.MOTDSTART, f":- {config.SERVER_NAME} You have now entered...  "
         )
         for line in utils.motd.split("\n"):
             self.send_message(IRC_REPLIES.MOTD, f":{line}")
