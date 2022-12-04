@@ -377,6 +377,7 @@ class Client:
             self.send_message(
                 IRC_ERRORS.NOSUCHSERVER, f"{target} :No such server is known"
             )
+        self._send_motd()
 
     def _send_motd(self):
         """Send MOTD message"""
