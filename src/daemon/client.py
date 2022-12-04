@@ -399,7 +399,7 @@ class Client:
             to client that is leaving
         """
         for channel_name, broadcast in self.joined_channels.items():
-            original_channel_name = Client.channels[channel].get_channel_name()
+            original_channel_name = Client.channels[channel_name].get_channel_name()
             self.broadcast_departure(
                 broadcast,
                 self.nick,
@@ -414,12 +414,16 @@ class Client:
         # Send JOIN message to channel
         broadcast(
             numeric=IRC_COMMANDS.JOIN,
-            message=f"{self.nick} {channel_name}",
+            message=f"{channel_name}",
             include_nick=False,
+            source=self.nick,
         )
         # Send JOIN message to client
         self.send_message(
-            IRC_COMMANDS.JOIN, message=f"{channel_name}", include_nick=False
+            IRC_COMMANDS.JOIN,
+            message=f"{channel_name}",
+            include_nick=False,
+            source=self.nick,
         )
 
     def broadcast_departure(
@@ -440,6 +444,7 @@ class Client:
             # message=f"{nick} is leaving the channel {channel_name} {reason}",
             message=f"{channel_name} {reason}",  # This version passes tests
             include_nick=False,
+            source=self.nick,
         )
         if send_to_self:
             # Send PART message to client
@@ -447,6 +452,7 @@ class Client:
                 IRC_COMMANDS.PART,
                 message=f"{channel_name} {reason}",
                 include_nick=False,
+                source=self.nick,
             )
 
     def send_topic(self, channel_name):
