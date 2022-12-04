@@ -382,7 +382,7 @@ class Client:
     def _send_motd(self):
         """Send MOTD message"""
         self.send_message(
-            IRC_REPLIES.MOTDSTART, f":- {config.SERVER_NAME} Message of the day - "
+            IRC_REPLIES.MOTDSTART, f":- {config.SERVER_NAME} You have now entered... "
         )
         for line in utils.motd.split("\n"):
             self.send_message(IRC_REPLIES.MOTD, f":{line}")
@@ -500,7 +500,7 @@ class Client:
         numeric: str,
         message: str,
         include_nick: bool = True,
-        source: str = f"{config.SERVER_NAME}",
+        source: str = config.SERVER_NAME,
     ):
         """Write message to the out buffer of this client instance
 
