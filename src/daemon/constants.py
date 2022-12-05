@@ -17,6 +17,7 @@ class IRC_COMMANDS(str, Enum):
     LUSERS = "LUSERS"
     PRIVMSG = "PRIVMSG"
     MOTD = "MOTD"
+    LIST = "LIST"
 
 
 @unique
@@ -50,6 +51,9 @@ class IRC_REPLIES(str, Enum):
     MOTD = "372"
     MOTDSTART = "375"
     ENDOFMOTD = "376"
+    LIST = "322"
+    LISTSTART = "321"
+    LISTEND = "323"
 
 
 @unique
