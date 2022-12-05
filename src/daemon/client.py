@@ -43,6 +43,7 @@ class Client:
             IRC_COMMANDS.LUSERS: self._handle_lusers,
             IRC_COMMANDS.PRIVMSG: self._handle_privmsg,
             IRC_COMMANDS.MOTD: self._handle_motd,
+            IRC_COMMANDS.LIST: self._handle_list,
         }
 
     @classmethod
@@ -399,6 +400,17 @@ class Client:
         """Handle client disconnect"""
         self._leave_all_channels(False)
         Client.clients.pop(self.address)
+
+    def _handle_list(self, message: Message):
+        """Handle LIST command"""
+        self.send_message(IRC_REPLIES.LISTSTART, "Channel :Users")
+        for client_channels in Client.channels:
+            self.send_message(
+                IRC_REPLIES.LIST,
+                f"{Client.channels[client_channels]._channel_name}"
+                + f" {len(Client.channels[client_channels]._clients)}",
+            )
+        self.send_message(IRC_REPLIES.LISTEND, ":End of /LIST")
 
     def _leave_all_channels(self, send_to_self: bool):
         """leave all channels that client is a part of

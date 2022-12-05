@@ -16,3 +16,5 @@ irctest/server_tests/part.py::PartTestCase::testPartMessage
 irctest/server_tests/lusers.py::BasicLusersTestCase::testLusers
 irctest/server_tests/messages.py::PrivmsgTestCase::testPrivmsg
 irctest/server_tests/messages.py::PrivmsgTestCase::testPrivmsgNonexistentChannel
+irctest/server_tests/list.py::ListTestCase::testListEmpty
+irctest/server_tests/list.py::ListTestCase::testListOne
