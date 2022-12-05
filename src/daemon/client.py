@@ -403,13 +403,12 @@ class Client:
 
     def _handle_list(self, message: Message):
         """Handle LIST command"""
-        self.send_message(IRC_REPLIES.LISTSTART, "Channel :Users  Name")
+        self.send_message(IRC_REPLIES.LISTSTART, "Channel :Users")
         for client_channels in Client.channels:
             self.send_message(
                 IRC_REPLIES.LIST,
                 f"{Client.channels[client_channels]._channel_name}"
-                + f" {len(Client.channels[client_channels]._clients)}"
-                + f" :{Client.channels[client_channels]._channel_topic}",
+                + f" {len(Client.channels[client_channels]._clients)}",
             )
         self.send_message(IRC_REPLIES.LISTEND, ":End of /LIST")
 
