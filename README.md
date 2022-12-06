@@ -24,7 +24,13 @@ You should see output indicating a bunch of checks running such as "Fix End of F
 
 To run the daemon, `poetry run python src/daemon/daemon.py`. The daemon expects to be run from the root directory in order to find the logging config.
 
-To test with the client `poetry run python src/utils/client.py`.
+## Testing
 
-### Configuring Logs
+The daemon can be tested using the integration tests in `src/test/integration_tests/`.
+The parser can be tested by running the tests in `src/test/parser_tests/`.
+Each test directory contains further documentation on the nature of the tests and how to run them.
+
+Furthermore, any off the shelf IRC client should be able to connect and interact with the daemon. We specifically tested with [Weechat](https://weechat.org/) and [pidgin](https://pidgin.im/).
+
+## Configuring Logs
 Logging can be configured to offer different levels of verbosity or different formats. This can be done by modifying `logging_config.yml`.
