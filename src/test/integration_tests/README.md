@@ -8,7 +8,7 @@ To get started, first clone the repository.
 
 Next, copy `pyircd_controller.py` to `irctest/irctest/controllers`. We wrote this controller to manage the setup and teardown process for the daemon between tests.
 
-Furthermore, copy `pyproject.toml` to the `irctest`. Finally run `poetry install` in `irctest` to get the environment setup. You may setup the environment without using `poetry` as well.
+Furthermore, copy `pyproject.toml` to the `irctest` directory. Finally run `poetry install` in `irctest` to get the environment setup. You may setup the environment without using `poetry` as well.
 
 #### Bug Fix
 
