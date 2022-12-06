@@ -90,8 +90,10 @@ class Parser:
 
         command = split_message[0].upper()
         parameters = self._parse_parameters(split_message[1:])
+        for param in parameters:
+            if param == "":
+                parameters.remove(param)
         if aggregated_param is not None:
-
             parameters.append(aggregated_param[0])
 
         if (command not in constants.VALID_ALPHA_COMMANDS) or parameters is None:
