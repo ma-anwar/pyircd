@@ -41,20 +41,11 @@ class Parser:
     def _parse_parameters(self, parameters: list):
         """Return a list of parsed parameters.
         If there are any bad parameters, return None"""
-        valid_parameters = []
-        join_params = False
         for i in range(len(parameters)):
-            if parameters[i][0] == ":":
-                join_params = True
-                parameters[i] = parameters[i][1:]
-                parameters[i] = " ".join(parameters[i:])
             for forbidden_sequence in ["\0", "\r", "\n", "::"]:
                 if forbidden_sequence in parameters[i]:
                     return None
-            valid_parameters.append(parameters[i])
-            if join_params:
-                break
-        return valid_parameters
+        return parameters
 
     def _parse_message(self, message: Message) -> Message | None:
         """Parse message according to IRC spec
@@ -70,7 +61,7 @@ class Parser:
 
         # Remove EOL delimiter
         delimiter_length = len(constants.IRC_TERMINATION_DELIMITER)
-        stripped_message = message_str[:-delimiter_length]
+        stripped_message = message_str[:-delimiter_length].lstrip()
 
         # Accept messages that exceed MAX_LINE_LENGTH, but slice them
         # https://modern.ircdocs.horse/#compatibility-with-incorrect-software
@@ -79,15 +70,29 @@ class Parser:
                 : constants.MAX_LINE_LENGTH - delimiter_length
             ]
 
+        # Find colon in message, if exists
+        aggregated_param = None
+        colon_index = stripped_message.find(":")
+        if colon_index > -1 and colon_index < len(stripped_message):
+            aggregated_param = self._parse_parameters(
+                [stripped_message[colon_index + 1 :]]
+            )
+            if aggregated_param is None:
+                return
+            stripped_message = stripped_message[:colon_index].rstrip()
+
         # Split message by space
-        split_message = stripped_message.split()
+        split_message = stripped_message.split(" ")
 
         # Inspect contents (assume no tags and source for now)
-        if len(split_message) < 1:
+        if len(split_message) < 1 and aggregated_param is None:
             return
 
         command = split_message[0].upper()
         parameters = self._parse_parameters(split_message[1:])
+        if aggregated_param is not None:
+
+            parameters.append(aggregated_param[0])
 
         if (command not in constants.VALID_ALPHA_COMMANDS) or parameters is None:
             return
