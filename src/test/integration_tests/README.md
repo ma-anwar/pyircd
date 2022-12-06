@@ -40,7 +40,7 @@ Replace `getMessage` with the following:
 
 The only change this has from the original is it adds a call to `time.sleep(0.001)`.
 
-Finally, the test for `testNickCollision` still hangs sometimes after adding this solution. This is no fault of the implementation as we have verified with the integration tests and live clients multiple times. The only solution is to either remove the test from the integration tests temporarily or re-run them until it stops hangning.
+Finally, the test for `testNickCollision` still hangs sometimes after adding this solution. This is no fault of the implementation as we have verified with the integration tests and live clients multiple times. The only solution is to either remove the test from the integration tests temporarily or re-run them until it stops hanging.
 
 
 #### Additional Tests
