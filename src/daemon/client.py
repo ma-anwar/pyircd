@@ -255,10 +255,12 @@ class Client:
             members_str = ", ".join(members)
             self.send_message(
                 IRC_REPLIES.NAMREPLY,
-                message=f"={channel_name} :{members_str}",
+                message=f"= {channel_name} :{members_str}",
                 include_nick=True,
             )
-            self.send_message(IRC_REPLIES.ENDOFNAMES, message=":End of /NAMES list")
+            self.send_message(
+                IRC_REPLIES.ENDOFNAMES, message=f"{channel_name} :End of /NAMES list"
+            )
 
     def _handle_part(self, message: Message, reason: str = ""):
         """Handle PART command"""
