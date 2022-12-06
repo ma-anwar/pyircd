@@ -5,8 +5,10 @@
      |____|    / ______|___||____|_  /\______  /_______  /
                \/                  \/        \/        \/
 
-## Video Demo
+## Video Demo And Design
 Check out a demo of our daemon [here](https://www.youtube.com/watch?v=x1UCsyApBdU).
+
+For details about the design of our project, see `Design_and_Implementation.pdf` in the root of our repo.
 
 ## Setup Instructions
 First, ensure you are using Python ^3.10.
