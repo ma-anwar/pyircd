@@ -5,6 +5,9 @@
      |____|    / ______|___||____|_  /\______  /_______  /
                \/                  \/        \/        \/
 
+## Video Demo
+Check out a demo of our daemon [here](https://www.youtube.com/watch?v=x1UCsyApBdU).
+
 ## Setup Instructions
 First, ensure you are using Python ^3.10.
 
