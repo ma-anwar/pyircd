@@ -544,3 +544,5 @@ class Client:
             message_as_bytes += constants.IRC_TERMINATION_DELIMITER
 
         self._key.data.out_buffer += message_as_bytes
+        # Set event loop selector to listen for write readiness on socket
+        self._key.data.toggle_writable(self._key.data, True)

@@ -29,6 +29,26 @@ class Server:
         self._dispatch = dispatch
         self._start_server()
 
+    def _get_writing_toggle(self, connection):
+        """Return a function to toggle whether to wait for socket write events
+
+        Closure is necessary because we don't have access to connection downstream.
+
+        Since healthy socket is always ready for write,
+        we should only toggle when we want to write to ensure
+        that event loop is not running needlessly.
+        """
+
+        def toggle(key_data, make_writable: bool):
+            events = (
+                selectors.EVENT_READ | selectors.EVENT_WRITE
+                if make_writable
+                else selectors.EVENT_READ
+            )
+            self._selector.modify(connection, events, key_data)
+
+        return toggle
+
     def _handle_new_client_connection(self, socket: socket.socket):
         """On client connection, create state and register it with the selector"""
         client_connection, client_address = socket.accept()
@@ -36,15 +56,18 @@ class Server:
         self._logger.info(f"Accepted connection from {client_address}")
         client_connection.setblocking(False)
 
+        toggle_writable = self._get_writing_toggle(client_connection)
+
         key = SimpleNamespace(
             address=client_address,
             in_buffer=b"",
             out_buffer=b"",
             is_server_socket=False,
             unregister_socket=False,
+            toggle_writable=toggle_writable,
         )
 
-        events = selectors.EVENT_READ | selectors.EVENT_WRITE
+        events = selectors.EVENT_READ
 
         self._selector.register(client_connection, events, data=key)
 
@@ -76,7 +99,6 @@ class Server:
         )
 
         if received_data:
-            # TODO: Enforce limit on buffer length to avoid memory overflow
             key.data.in_buffer += received_data
             if self._has_irc_termination_delimiter(key.data.in_buffer):
                 self._dispatch_message_to_parser(key)
@@ -87,7 +109,6 @@ class Server:
             self._dispatch_on_disconnect(key)
             self._selector.unregister(socket)
             socket.close()
-            # TODO: Notify downstream
 
     def _dispatch_message_to_parser(self, key: SelectorKey):
         """Retrieve data from buffer, build Message and dispatch to parser"""
@@ -168,12 +189,12 @@ class Server:
                     self._dispatch_on_disconnect(key)
                     self._selector.unregister(socket)
                     socket.close()
-                    # TODO: Notify downstream
                     return
                 if key.data.unregister_socket:
                     self._selector.unregister(socket)
                     socket.close()
                     return
+            key.data.toggle_writable(key.data, False)
 
     def _start_server(self):
         """Initialize server socket and call event_loop initialization"""
