@@ -29,7 +29,7 @@ class Server:
         self._dispatch = dispatch
         self._start_server()
 
-    def _get_writing_toggle(self, connection):
+    def _get_writing_toggle(self, connection: socket.socket):
         """Return a function to toggle whether to wait for socket write events
 
         Closure is necessary because we don't have access to connection downstream.
