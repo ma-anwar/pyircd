@@ -115,15 +115,7 @@ class Server:
         address = key.data.address
 
         for message in self._get_message_from_in_buffer(key):
-            delimiter_index = self._get_delimiter_position(key.data.in_buffer)
-
-            irc_message = key.data.in_buffer[
-                : delimiter_index + constants.DELIMITER_END_OFFSET
-            ]
-
-            key.data.in_buffer = key.data.in_buffer[len(irc_message) :]
-
-            message = Message(address, "PARSE", irc_message, key)
+            message = Message(address, "PARSE", message, key)
             self._dispatch(message)
 
     def _dispatch_on_disconnect(self, key: SelectorKey):
@@ -156,7 +148,7 @@ class Server:
             message = key.data.in_buffer[
                 : delimiter_position + constants.DELIMITER_END_OFFSET
             ]
-            key.data.out_buffer = key.data.in_buffer[len(message) :]
+            key.data.in_buffer = key.data.in_buffer[len(message) :]
             yield (message)
 
     def _get_message(self, key: SelectorKey):
