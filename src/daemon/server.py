@@ -32,8 +32,6 @@ class Server:
     def _get_writing_toggle(self, connection: socket.socket):
         """Return a function to toggle whether to wait for socket write events
 
-        Closure is necessary because we don't have access to connection downstream.
-
         Since healthy socket is always ready for write,
         we should only toggle when we want to write to ensure
         that event loop is not running needlessly.
@@ -186,7 +184,7 @@ class Server:
                     self._selector.unregister(socket)
                     socket.close()
                     return
-            key.data.toggle_writable(key.data, False)
+        key.data.toggle_writable(key.data, False)
 
     def _start_server(self):
         """Initialize server socket and call event_loop initialization"""
