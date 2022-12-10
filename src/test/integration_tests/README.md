@@ -4,48 +4,13 @@
 
 The files here are to be used with the [irctest](https://github.com/progval/irctest) repo to run integration tests against Pyircd. The repo contains tests for many different specs of the IRC protocol. We have included a file and instructions to run tests that match our implementation below.
 
-To get started, first clone the repository.
+To get started, clone and follow the installation instructions in the irctest repository.
 
-Next, copy `pyircd_controller.py` to `irctest/irctest/controllers`. We wrote this controller to manage the setup and teardown process for the daemon between tests.
-
-Furthermore, copy `pyproject.toml` to the `irctest` directory. Finally run `poetry install` in `irctest` to get the environment setup. You may setup the environment without using `poetry` as well.
-
-#### Bug Fix
-
-The existing tests seem to have a race condition that causes tests to hang when testing against our server. We opened an [issue](https://github.com/progval/irctest/pull/182#issuecomment-1336107652) to further investigate this but in the meantime we found the following modification to be helpful:
-
-In `irctest/irctest/client_mock.py`:
-Replace `getMessage` with the following:
-```
-    def getMessage(
-        self,
-        filter_pred: Optional[Callable[[message_parser.Message], bool]] = None,
-        synchronize: bool = True,
-        raw: bool = False,
-    ) -> message_parser.Message:
-        """Returns str in the rare case where raw=True"""
-        __tracebackhide__ = True  # Hide from pytest tracebacks on test failure.
-        while True:
-            if not self.inbuffer:
-                time.sleep(0.001)
-                self.inbuffer = self.getMessages(
-                    synchronize=synchronize, assert_get_one=True, raw=raw
-                )
-            if not self.inbuffer:
-                raise NoMessageException()
-            message = self.inbuffer.pop(0)  # TODO: use dequeue
-            if not filter_pred or filter_pred(message):
-                return message
-```
-
-The only change this has from the original is it adds a call to `time.sleep(0.001)`.
-
-Finally, the test for `testNickCollision` still hangs sometimes after adding this solution. This is no fault of the implementation as we have verified with the integration tests and live clients multiple times. The only solution is to either remove the test from the integration tests temporarily or re-run them until it stops hanging.
-
+Next, copy `pyircd_controller.py` to `irctest/irctest/controllers`. We wrote this controller to manage the setup and teardown process for the daemon between tests. This is all that's needed to get setup.
 
 #### Additional Tests
-Due to a lack of tests for certain core IRC functionality. We wrote some additional tests. These can be found in `additional_tests.py` and must be copied into `passing_tests.txt` after adding them into `irctest`.
-Instructions for adding the tests into `irctest` can be found in `additional_tests.py`.
+Due to a lack of tests for certain core IRC functionality. We wrote some additional tests. These can be found in `custom_tests.py` and can be copied into `passing_tests.txt` after adding them into `irctest` to use them.
+Instructions for adding the tests into `irctest` can be found in `custom_tests.py`.
 
 ### Running Tests
 
