@@ -47,7 +47,7 @@ class Parser:
                     return None
         return parameters
 
-    def _parse_message(self, message: Message) -> Message | None:
+    def _parse_message(self, message: Message):
         """Parse message according to IRC spec
         If parse is successful, forward message to EventBus
         Otherwise, drop message"""

@@ -13,7 +13,7 @@ class MessageBus:
         self._logger = logging.getLogger(__name__)
 
     def _handle_message(self, message: Message):
-        """Handle received message by forwarding it to client, WIP"""
+        """Handle received message by forwarding it to client"""
         self._logger.debug(message)
         client = self._get_client(message)
         client.handle_message(message)
